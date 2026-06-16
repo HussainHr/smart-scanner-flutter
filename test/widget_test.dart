@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_scanner/app.dart';
@@ -18,7 +17,7 @@ void main() {
     expect(find.text('Saved File List'), findsOneWidget);
   });
 
-  testWidgets('Home navigates to scanner and back', (tester) async {
+  testWidgets('Home navigates to scanner screen', (tester) async {
     await tester.pumpWidget(
       const ProviderScope(
         child: SmartScannerApp(),
@@ -30,14 +29,8 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Scanner'), findsWidgets);
-    expect(
-      find.text('Camera scanning will be implemented in Sprint 2.'),
-      findsOneWidget,
-    );
-
-    await tester.tap(find.byIcon(Icons.arrow_back_rounded));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Main Menu'), findsOneWidget);
+    expect(find.text('Inspection List'), findsOneWidget);
+    expect(find.text('Scan'), findsOneWidget);
+    expect(find.text('Barcode / QR'), findsOneWidget);
   });
 }
