@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
+import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_type.dart';
 
 class InspectionListPanel extends StatelessWidget {
   const InspectionListPanel({
     super.key,
     required this.items,
+    required this.scanMode,
   });
 
   final List<ScanItem> items;
+  final ScanMode scanMode;
 
   @override
   Widget build(BuildContext context) {
@@ -93,7 +96,9 @@ class InspectionListPanel extends StatelessWidget {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'Point the camera at a code and tap Scan.',
+                            scanMode == ScanMode.ocr
+                                ? 'Point the camera at text and tap Scan Text.'
+                                : 'Point the camera at a code and tap Scan.',
                             textAlign: TextAlign.center,
                             style:
                                 Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -112,7 +117,16 @@ class InspectionListPanel extends StatelessWidget {
                     separatorBuilder: (context, index) => const SizedBox(height: 8),
                     itemBuilder: (context, index) {
                       final item = items[index];
-                      final isQr = item.type == ScanType.qr;
+                      final accentColor = switch (item.type) {
+                        ScanType.qr => colorScheme.secondary,
+                        ScanType.ocr => const Color(0xFF0F766E),
+                        ScanType.barcode => colorScheme.primary,
+                      };
+                      final icon = switch (item.type) {
+                        ScanType.qr => Icons.qr_code_2_rounded,
+                        ScanType.ocr => Icons.text_fields_rounded,
+                        ScanType.barcode => Icons.barcode_reader,
+                      };
 
                       return Container(
                         padding: const EdgeInsets.all(14),
@@ -131,20 +145,13 @@ class InspectionListPanel extends StatelessWidget {
                               width: 36,
                               height: 36,
                               decoration: BoxDecoration(
-                                color: (isQr
-                                        ? colorScheme.secondary
-                                        : colorScheme.primary)
-                                    .withValues(alpha: 0.12),
+                                color: accentColor.withValues(alpha: 0.12),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Icon(
-                                isQr
-                                    ? Icons.qr_code_2_rounded
-                                    : Icons.barcode_reader,
+                                icon,
                                 size: 20,
-                                color: isQr
-                                    ? colorScheme.secondary
-                                    : colorScheme.primary,
+                                color: accentColor,
                               ),
                             ),
                             const SizedBox(width: 12),

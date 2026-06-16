@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smart_scanner/core/errors/app_exception.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
+import 'package:smart_scanner/features/scanner/domain/entities/scan_type.dart';
 import 'package:smart_scanner/features/scanner/presentation/providers/inspection_list_notifier.dart';
 import 'package:smart_scanner/features/scanner/presentation/providers/scanner_providers.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/camera_preview_widget.dart';
@@ -14,9 +16,13 @@ class ScannerScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(scannerRepositoryProvider);
+
     final inspectionList = ref.watch(inspectionListProvider);
     final scanMode = ref.watch(scanModeProvider);
+    final isProcessing = ref.watch(scanProcessingProvider);
     final colorScheme = Theme.of(context).colorScheme;
+    final isOcrMode = scanMode == ScanMode.ocr;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -46,13 +52,19 @@ class ScannerScreen extends ConsumerWidget {
                         ScanModeChip(
                           mode: ScanMode.barcodeQr,
                           isSelected: scanMode == ScanMode.barcodeQr,
-                          isEnabled: true,
+                          isEnabled: !isProcessing,
+                          onTap: () => ref
+                              .read(scanModeProvider.notifier)
+                              .setMode(ScanMode.barcodeQr),
                         ),
                         const SizedBox(width: 8),
                         ScanModeChip(
                           mode: ScanMode.ocr,
                           isSelected: scanMode == ScanMode.ocr,
-                          isEnabled: false,
+                          isEnabled: !isProcessing,
+                          onTap: () => ref
+                              .read(scanModeProvider.notifier)
+                              .setMode(ScanMode.ocr),
                         ),
                       ],
                     ),
@@ -60,7 +72,7 @@ class ScannerScreen extends ConsumerWidget {
                   Center(
                     child: Container(
                       width: 220,
-                      height: 220,
+                      height: isOcrMode ? 140 : 220,
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.85),
@@ -70,15 +82,37 @@ class ScannerScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  if (isOcrMode)
+                    Positioned(
+                      top: 56,
+                      left: 24,
+                      right: 24,
+                      child: Text(
+                        'Align text inside the frame only.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.9),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
                   Positioned(
                     left: 10,
                     right: 10,
                     bottom: 16,
                     child: Center(
                       child: FilledButton.icon(
-                        onPressed: () => _handleScan(context, ref),
-                        icon: const Icon(Icons.qr_code_scanner_rounded),
-                        label: const Text('Scan'),
+                        onPressed: isProcessing
+                            ? null
+                            : () => _handleScan(context, ref, scanMode),
+                        icon: Icon(
+                          isOcrMode
+                              ? Icons.document_scanner_outlined
+                              : Icons.qr_code_scanner_rounded,
+                        ),
+                        label: Text(isOcrMode ? 'Scan Text' : 'Scan'),
                         style: FilledButton.styleFrom(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 28,
@@ -88,20 +122,50 @@ class ScannerScreen extends ConsumerWidget {
                       ),
                     ),
                   ),
+                  if (isProcessing)
+                    Positioned.fill(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.35),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Center(
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
           ),
           Expanded(
             flex: 4,
-            child: InspectionListPanel(items: inspectionList),
+            child: InspectionListPanel(
+              items: inspectionList,
+              scanMode: scanMode,
+            ),
           ),
         ],
       ),
     );
   }
 
-  void _handleScan(BuildContext context, WidgetRef ref) {
+  Future<void> _handleScan(
+    BuildContext context,
+    WidgetRef ref,
+    ScanMode scanMode,
+  ) async {
+    if (scanMode == ScanMode.barcodeQr) {
+      _handleBarcodeScan(context, ref);
+      return;
+    }
+
+    await _handleOcrScan(context, ref);
+  }
+
+  void _handleBarcodeScan(BuildContext context, WidgetRef ref) {
     final detection =
         ref.read(scannerRepositoryProvider).peekPendingDetection();
 
@@ -113,10 +177,63 @@ class ScannerScreen extends ConsumerWidget {
       return;
     }
 
-    final item = ScanItem(
-      id: DateTime.now().microsecondsSinceEpoch.toString(),
+    _addScanToList(
+      context,
+      ref,
       value: detection.value,
       type: detection.type,
+    );
+  }
+
+  Future<void> _handleOcrScan(BuildContext context, WidgetRef ref) async {
+    final processingNotifier = ref.read(scanProcessingProvider.notifier);
+    processingNotifier.setProcessing(true);
+
+    try {
+      final recognizedText = await ref
+          .read(scannerRepositoryProvider)
+          .recognizeTextFromFrame();
+
+      if (!context.mounted) {
+        return;
+      }
+
+      _addScanToList(
+        context,
+        ref,
+        value: recognizedText,
+        type: ScanType.ocr,
+      );
+    } on AppException catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      _showMessage(context, error.message);
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+
+      _showMessage(
+        context,
+        'Text recognition failed. Please try again.',
+      );
+    } finally {
+      processingNotifier.setProcessing(false);
+    }
+  }
+
+  void _addScanToList(
+    BuildContext context,
+    WidgetRef ref, {
+    required String value,
+    required ScanType type,
+  }) {
+    final item = ScanItem(
+      id: DateTime.now().microsecondsSinceEpoch.toString(),
+      value: value,
+      type: type,
       scannedAt: DateTime.now(),
     );
 
@@ -125,7 +242,7 @@ class ScannerScreen extends ConsumerWidget {
     if (result == AddScanResult.duplicate) {
       _showMessage(
         context,
-        'Duplicate scan: this code is already in the inspection list.',
+        'Duplicate scan: this value is already in the inspection list.',
         isWarning: true,
       );
       return;

@@ -1,12 +1,15 @@
+import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/barcode_detection.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_type.dart';
 
 class BarcodeScannerDatasource {
   BarcodeScannerDatasource() {
+    previewBoundaryKey = GlobalKey();
     _controller = MobileScannerController(
       detectionSpeed: DetectionSpeed.normal,
       facing: CameraFacing.back,
+      returnImage: true,
       formats: const [
         BarcodeFormat.qrCode,
         BarcodeFormat.ean13,
@@ -24,6 +27,8 @@ class BarcodeScannerDatasource {
   }
 
   late final MobileScannerController _controller;
+  late final GlobalKey previewBoundaryKey;
+
   BarcodeDetection? _latestDetection;
 
   MobileScannerController get controller => _controller;
@@ -54,7 +59,7 @@ class BarcodeScannerDatasource {
     );
   }
 
-  BarcodeDetection? getLatestDetection() => _latestDetection;
+  BarcodeDetection? peekPendingDetection() => _latestDetection;
 
   ScanType _mapFormat(BarcodeFormat format) {
     return switch (format) {
@@ -66,7 +71,11 @@ class BarcodeScannerDatasource {
     };
   }
 
-  Future<void> dispose() async {
+  Future<void> release() async {
+    if (_controller.value.isRunning) {
+      await _controller.stop();
+    }
+
     await _controller.dispose();
   }
 }

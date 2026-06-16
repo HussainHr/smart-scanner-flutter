@@ -8,11 +8,14 @@ class CameraPreviewWidget extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final datasource = ref.watch(barcodeScannerDatasourceProvider);
+    final scanMode = ref.watch(scanModeProvider);
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: BarcodeCameraPreview(datasource: datasource),
+      child: BarcodeCameraPreview(
+        datasource: ref.watch(barcodeScannerDatasourceProvider),
+        scanMode: scanMode,
+      ),
     );
   }
 }
