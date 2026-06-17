@@ -8,7 +8,7 @@
         android:maxSdkVersion="29" />
 
     <application
-        android:label="smart_scanner"
+        android:label="Smart Scanner"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">
