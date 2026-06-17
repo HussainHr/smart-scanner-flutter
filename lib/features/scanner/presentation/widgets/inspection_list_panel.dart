@@ -8,10 +8,16 @@ class InspectionListPanel extends StatelessWidget {
     super.key,
     required this.items,
     required this.scanMode,
+    this.onSave,
+    this.isSaveEnabled = false,
+    this.isSaving = false,
   });
 
   final List<ScanItem> items;
   final ScanMode scanMode;
+  final VoidCallback? onSave;
+  final bool isSaveEnabled;
+  final bool isSaving;
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +73,32 @@ class InspectionListPanel extends StatelessWidget {
                       color: colorScheme.primary,
                       fontWeight: FontWeight.w700,
                       fontSize: 12,
+                    ),
+                  ),
+                ),
+                const Spacer(),
+                FilledButton.tonalIcon(
+                  onPressed: isSaveEnabled && !isSaving ? onSave : null,
+                  icon: isSaving
+                      ? SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: colorScheme.primary,
+                          ),
+                        )
+                      : const Icon(Icons.save_rounded, size: 18),
+                  label: Text(isSaving ? 'Saving...' : 'Save CSV'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: const Size(0, 40),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 14,
+                      vertical: 10,
+                    ),
+                    textStyle: const TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ),

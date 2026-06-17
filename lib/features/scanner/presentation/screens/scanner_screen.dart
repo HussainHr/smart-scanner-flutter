@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_scanner/core/errors/app_exception.dart';
+import 'package:smart_scanner/features/save/presentation/providers/save_providers.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_type.dart';
@@ -21,8 +22,10 @@ class ScannerScreen extends ConsumerWidget {
     final inspectionList = ref.watch(inspectionListProvider);
     final scanMode = ref.watch(scanModeProvider);
     final isProcessing = ref.watch(scanProcessingProvider);
+    final isSaving = ref.watch(saveProcessingProvider);
     final colorScheme = Theme.of(context).colorScheme;
     final isOcrMode = scanMode == ScanMode.ocr;
+    final canSave = inspectionList.isNotEmpty && !isProcessing && !isSaving;
 
     return Scaffold(
       backgroundColor: colorScheme.surface,
@@ -52,7 +55,7 @@ class ScannerScreen extends ConsumerWidget {
                         ScanModeChip(
                           mode: ScanMode.barcodeQr,
                           isSelected: scanMode == ScanMode.barcodeQr,
-                          isEnabled: !isProcessing,
+                          isEnabled: !isProcessing && !isSaving,
                           onTap: () => ref
                               .read(scanModeProvider.notifier)
                               .setMode(ScanMode.barcodeQr),
@@ -61,7 +64,7 @@ class ScannerScreen extends ConsumerWidget {
                         ScanModeChip(
                           mode: ScanMode.ocr,
                           isSelected: scanMode == ScanMode.ocr,
-                          isEnabled: !isProcessing,
+                          isEnabled: !isProcessing && !isSaving,
                           onTap: () => ref
                               .read(scanModeProvider.notifier)
                               .setMode(ScanMode.ocr),
@@ -104,7 +107,7 @@ class ScannerScreen extends ConsumerWidget {
                     bottom: 16,
                     child: Center(
                       child: FilledButton.icon(
-                        onPressed: isProcessing
+                        onPressed: isProcessing || isSaving
                             ? null
                             : () => _handleScan(context, ref, scanMode),
                         icon: Icon(
@@ -145,6 +148,9 @@ class ScannerScreen extends ConsumerWidget {
             child: InspectionListPanel(
               items: inspectionList,
               scanMode: scanMode,
+              onSave: () => _handleSave(context, ref),
+              isSaveEnabled: canSave,
+              isSaving: isSaving,
             ),
           ),
         ],
@@ -249,6 +255,51 @@ class ScannerScreen extends ConsumerWidget {
     }
 
     _showMessage(context, 'Added to inspection list.');
+  }
+
+  Future<void> _handleSave(BuildContext context, WidgetRef ref) async {
+    final items = ref.read(inspectionListProvider);
+    if (items.isEmpty) {
+      _showMessage(context, 'Inspection list is empty.');
+      return;
+    }
+
+    final savingNotifier = ref.read(saveProcessingProvider.notifier);
+    savingNotifier.setSaving(true);
+
+    try {
+      final savedFile = await ref
+          .read(inspectionExportRepositoryProvider)
+          .exportInspectionList(items);
+
+      ref.read(inspectionListProvider.notifier).clear();
+
+      if (!context.mounted) {
+        return;
+      }
+
+      _showMessage(
+        context,
+        'Saved ${savedFile.itemCount} items to ${savedFile.fileName}.',
+      );
+    } on AppException catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      _showMessage(context, error.message);
+    } catch (_) {
+      if (!context.mounted) {
+        return;
+      }
+
+      _showMessage(
+        context,
+        'Failed to save inspection list. Please try again.',
+      );
+    } finally {
+      savingNotifier.setSaving(false);
+    }
   }
 
   void _showMessage(
