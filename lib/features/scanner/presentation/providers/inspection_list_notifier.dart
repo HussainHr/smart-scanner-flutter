@@ -31,6 +31,25 @@ class InspectionListNotifier extends Notifier<List<ScanItem>> {
     ];
   }
 
+  void updateCode(String id, String code) {
+    final normalized = code.trim();
+    if (normalized.isEmpty) {
+      return;
+    }
+
+    final isDuplicate = state.any(
+      (item) => item.id != id && item.value == normalized,
+    );
+    if (isDuplicate) {
+      return;
+    }
+
+    state = [
+      for (final item in state)
+        if (item.id == id) item.copyWith(value: normalized) else item,
+    ];
+  }
+
   void clear() {
     state = [];
   }

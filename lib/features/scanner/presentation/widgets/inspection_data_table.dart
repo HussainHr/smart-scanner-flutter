@@ -8,12 +8,16 @@ class InspectionDataTable extends StatelessWidget {
     this.showResetColumn = false,
     this.onReset,
     this.onQuantityChanged,
+    this.onRowSelected,
+    this.previewStyle = false,
   });
 
   final List<InspectionTableRow> rows;
   final bool showResetColumn;
   final ValueChanged<String>? onReset;
   final void Function(String id, int quantity)? onQuantityChanged;
+  final ValueChanged<String>? onRowSelected;
+  final bool previewStyle;
 
   @override
   Widget build(BuildContext context) {
@@ -22,6 +26,12 @@ class InspectionDataTable extends StatelessWidget {
     if (rows.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    final headerColor = previewStyle
+        ? const Color(0xFF0E7490)
+        : colorScheme.primary.withValues(alpha: 0.12);
+    final headerTextColor =
+        previewStyle ? Colors.white : colorScheme.primary;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
@@ -41,30 +51,33 @@ class InspectionDataTable extends StatelessWidget {
               },
         children: [
           TableRow(
-            decoration: BoxDecoration(
-              color: colorScheme.primary.withValues(alpha: 0.12),
-            ),
+            decoration: BoxDecoration(color: headerColor),
             children: [
               if (showResetColumn)
                 _HeaderCell(
                   label: 'Reset',
-                  colorScheme: colorScheme,
+                  textColor: headerTextColor,
+                  previewStyle: previewStyle,
                 ),
               _HeaderCell(
                 label: 'Code',
-                colorScheme: colorScheme,
+                textColor: headerTextColor,
+                previewStyle: previewStyle,
               ),
               _HeaderCell(
                 label: 'Quantity',
-                colorScheme: colorScheme,
+                textColor: headerTextColor,
+                previewStyle: previewStyle,
                 align: TextAlign.center,
               ),
             ],
           ),
-          for (final row in rows)
+          for (var index = 0; index < rows.length; index++)
             TableRow(
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: previewStyle && index.isEven
+                    ? const Color(0xFFF1F5F9)
+                    : Colors.white,
               ),
               children: [
                 if (showResetColumn)
@@ -72,7 +85,7 @@ class InspectionDataTable extends StatelessWidget {
                     padding: const EdgeInsets.all(8),
                     child: FilledButton.tonal(
                       onPressed:
-                          onReset == null ? null : () => onReset!(row.id),
+                          onReset == null ? null : () => onReset!(rows[index].id),
                       style: FilledButton.styleFrom(
                         minimumSize: const Size(0, 34),
                         padding: const EdgeInsets.symmetric(horizontal: 8),
@@ -90,9 +103,10 @@ class InspectionDataTable extends StatelessWidget {
                     vertical: 14,
                   ),
                   child: Text(
-                    row.code,
+                    rows[index].code,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w600,
+                          fontSize: previewStyle ? 13 : null,
                         ),
                   ),
                 ),
@@ -101,7 +115,7 @@ class InspectionDataTable extends StatelessWidget {
                   child: onQuantityChanged == null
                       ? Center(
                           child: Text(
-                            '${row.quantity}',
+                            '${rows[index].quantity}',
                             style: Theme.of(context)
                                 .textTheme
                                 .bodyMedium
@@ -109,9 +123,12 @@ class InspectionDataTable extends StatelessWidget {
                           ),
                         )
                       : _QuantityField(
-                          quantity: row.quantity,
+                          quantity: rows[index].quantity,
                           onChanged: (quantity) =>
-                              onQuantityChanged!(row.id, quantity),
+                              onQuantityChanged!(rows[index].id, quantity),
+                          onFocus: onRowSelected == null
+                              ? null
+                              : () => onRowSelected!(rows[index].code),
                         ),
                 ),
               ],
@@ -137,24 +154,30 @@ class InspectionTableRow {
 class _HeaderCell extends StatelessWidget {
   const _HeaderCell({
     required this.label,
-    required this.colorScheme,
+    required this.textColor,
+    this.previewStyle = false,
     this.align = TextAlign.start,
   });
 
   final String label;
-  final ColorScheme colorScheme;
+  final Color textColor;
+  final bool previewStyle;
   final TextAlign align;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+      padding: EdgeInsets.symmetric(
+        horizontal: 12,
+        vertical: previewStyle ? 14 : 12,
+      ),
       child: Text(
         label,
         textAlign: align,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: colorScheme.primary,
+              color: textColor,
               fontWeight: FontWeight.w700,
+              fontSize: previewStyle ? 13 : null,
             ),
       ),
     );
@@ -165,10 +188,12 @@ class _QuantityField extends StatefulWidget {
   const _QuantityField({
     required this.quantity,
     required this.onChanged,
+    this.onFocus,
   });
 
   final int quantity;
   final ValueChanged<int> onChanged;
+  final VoidCallback? onFocus;
 
   @override
   State<_QuantityField> createState() => _QuantityFieldState();
@@ -176,11 +201,18 @@ class _QuantityField extends StatefulWidget {
 
 class _QuantityFieldState extends State<_QuantityField> {
   late final TextEditingController _controller;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _controller = TextEditingController(text: '${widget.quantity}');
+    _focusNode = FocusNode()
+      ..addListener(() {
+        if (_focusNode.hasFocus) {
+          widget.onFocus?.call();
+        }
+      });
   }
 
   @override
@@ -194,14 +226,24 @@ class _QuantityFieldState extends State<_QuantityField> {
 
   @override
   void dispose() {
+    _focusNode.dispose();
     _controller.dispose();
     super.dispose();
+  }
+
+  void _commitValue() {
+    final parsed = int.tryParse(_controller.text);
+    if (parsed != null && parsed > 0) {
+      widget.onChanged(parsed);
+    }
+    FocusScope.of(context).unfocus();
   }
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       controller: _controller,
+      focusNode: _focusNode,
       textAlign: TextAlign.center,
       keyboardType: TextInputType.number,
       textInputAction: TextInputAction.done,
@@ -213,18 +255,14 @@ class _QuantityFieldState extends State<_QuantityField> {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-      onSubmitted: (value) {
+      onChanged: (value) {
         final parsed = int.tryParse(value);
         if (parsed != null && parsed > 0) {
           widget.onChanged(parsed);
         }
       },
-      onEditingComplete: () {
-        final parsed = int.tryParse(_controller.text);
-        if (parsed != null && parsed > 0) {
-          widget.onChanged(parsed);
-        }
-      },
+      onSubmitted: (_) => _commitValue(),
+      onEditingComplete: _commitValue,
     );
   }
 }

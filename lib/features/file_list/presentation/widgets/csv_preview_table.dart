@@ -31,7 +31,15 @@ class CsvPreviewTable extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: InspectionDataTable(rows: tableRows),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          InspectionDataTable(
+            rows: tableRows,
+            previewStyle: true,
+          ),
+        ],
+      ),
     );
   }
 

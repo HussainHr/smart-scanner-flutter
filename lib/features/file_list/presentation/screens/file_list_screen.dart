@@ -43,7 +43,7 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
   Widget build(BuildContext context) {
     final fileListAsync = ref.watch(fileListProvider);
     final deletingFileName = ref.watch(fileDeleteProvider);
-    final isSending = ref.watch(fileSendProvider);
+    final sendingFileName = ref.watch(fileSendProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -128,7 +128,7 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
                       return ScanFileListTile(
                         entry: entry,
                         isDeleting: deletingFileName == entry.fileName,
-                        isSending: isSending,
+                        isSending: sendingFileName == entry.fileName,
                         onView: () => context.push(
                           AppConstants.routeFileView,
                           extra: entry,
@@ -219,7 +219,7 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(content: Text('Email share opened.')),
+          const SnackBar(content: Text('Gmail opened with attachment.')),
         );
     } catch (error) {
       if (!context.mounted) {

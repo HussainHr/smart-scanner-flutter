@@ -18,6 +18,11 @@ class ScanFileRepositoryImpl implements ScanFileRepository {
   }
 
   @override
+  Future<List<int>> readFileBytes(ScanFileEntry entry) {
+    return _contentDatasource.readBytes(entry);
+  }
+
+  @override
   Future<String> readFileContent(ScanFileEntry entry) {
     return _contentDatasource.readContent(entry);
   }

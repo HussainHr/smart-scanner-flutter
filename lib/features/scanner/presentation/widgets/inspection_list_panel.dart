@@ -22,11 +22,26 @@ class InspectionListPanel extends ConsumerWidget {
   final bool isSaveEnabled;
   final bool isSaving;
 
+  ScanItem? _activeItem(List<ScanItem> items, String? lastScannedCode) {
+    if (lastScannedCode == null || lastScannedCode.isEmpty) {
+      return null;
+    }
+
+    for (final item in items) {
+      if (item.value == lastScannedCode) {
+        return item;
+      }
+    }
+
+    return null;
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
     final quantity = ref.watch(scanQuantityProvider);
     final lastScannedCode = ref.watch(lastScannedCodeProvider);
+    final activeItem = _activeItem(items, lastScannedCode);
 
     return Container(
       decoration: BoxDecoration(
@@ -114,23 +129,25 @@ class InspectionListPanel extends ConsumerWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
             child: Row(
-              mainAxisAlignment: .start,
-              crossAxisAlignment: .start,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Expanded(
                   flex: 3,
                   child: _LabeledField(
                     label: 'Code',
-                    child: Text(
-                      lastScannedCode ?? '',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w600,
-                            color: lastScannedCode == null
-                                ? colorScheme.onSurface.withValues(alpha: 0.35)
-                                : null,
-                          ),
+                    child: _ScanCodeInput(
+                      code: lastScannedCode ?? '',
+                      enabled: activeItem != null,
+                      onChanged: (code) {
+                        if (activeItem == null) {
+                          return;
+                        }
+
+                        ref
+                            .read(inspectionListProvider.notifier)
+                            .updateCode(activeItem.id, code);
+                        ref.read(lastScannedCodeProvider.notifier).setCode(code);
+                      },
                     ),
                   ),
                 ),
@@ -140,8 +157,15 @@ class InspectionListPanel extends ConsumerWidget {
                   child: _LabeledField(
                     label: 'Quantity',
                     child: _ScanQuantityInput(
-                      quantity: quantity,
-                      onChanged: (value) => ref.read(scanQuantityProvider.notifier).setQuantity(value),
+                      quantity: activeItem?.quantity ?? quantity,
+                      onChanged: (value) {
+                        ref.read(scanQuantityProvider.notifier).setQuantity(value);
+                        if (activeItem != null) {
+                          ref
+                              .read(inspectionListProvider.notifier)
+                              .updateQuantity(activeItem.id, value);
+                        }
+                      },
                     ),
                   ),
                 ),
@@ -151,13 +175,41 @@ class InspectionListPanel extends ConsumerWidget {
           Expanded(
             child: items.isEmpty
                 ? Center(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Text(
-                        'There is no Data.',
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Container(
+                            width: 72,
+                            height: 72,
+                            decoration: BoxDecoration(
+                              color: colorScheme.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
                             ),
+                            child: Icon(
+                              Icons.inventory_2_outlined,
+                              size: 36,
+                              color: colorScheme.primary.withValues(alpha: 0.75),
+                            ),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No scans yet',
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                ),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            'Scan a barcode or QR code to start building your inspection list.',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                  color: colorScheme.onSurface.withValues(alpha: 0.55),
+                                  height: 1.45,
+                                ),
+                          ),
+                        ],
                       ),
                     ),
                   )
@@ -174,12 +226,99 @@ class InspectionListPanel extends ConsumerWidget {
                       ],
                       showResetColumn: true,
                       onReset: (id) => ref.read(inspectionListProvider.notifier).removeScan(id),
-                      onQuantityChanged: (id, quantity) => ref.read(inspectionListProvider.notifier).updateQuantity(id, quantity),
+                      onQuantityChanged: (id, nextQuantity) {
+                        ref.read(inspectionListProvider.notifier).updateQuantity(id, nextQuantity);
+
+                        final item = items.firstWhere((entry) => entry.id == id);
+                        if (item.value == lastScannedCode) {
+                          ref.read(scanQuantityProvider.notifier).setQuantity(nextQuantity);
+                        }
+                      },
+                      onRowSelected: (code) {
+                        ref.read(lastScannedCodeProvider.notifier).setCode(code);
+                        final item = items.firstWhere((entry) => entry.value == code);
+                        ref.read(scanQuantityProvider.notifier).setQuantity(item.quantity);
+                      },
                     ),
                   ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _ScanCodeInput extends StatefulWidget {
+  const _ScanCodeInput({
+    required this.code,
+    required this.enabled,
+    required this.onChanged,
+  });
+
+  final String code;
+  final bool enabled;
+  final ValueChanged<String> onChanged;
+
+  @override
+  State<_ScanCodeInput> createState() => _ScanCodeInputState();
+}
+
+class _ScanCodeInputState extends State<_ScanCodeInput> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.code);
+  }
+
+  @override
+  void didUpdateWidget(covariant _ScanCodeInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.code != widget.code && _controller.text != widget.code) {
+      _controller.text = widget.code;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    if (!widget.enabled) {
+      return Text(
+        widget.code,
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              color: widget.code.isEmpty
+                  ? colorScheme.onSurface.withValues(alpha: 0.35)
+                  : null,
+            ),
+      );
+    }
+
+    return TextField(
+      controller: _controller,
+      maxLines: 1,
+      textInputAction: TextInputAction.done,
+      decoration: const InputDecoration(
+        isDense: true,
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+      ),
+      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+      onChanged: widget.onChanged,
+      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+      onEditingComplete: () => FocusScope.of(context).unfocus(),
     );
   }
 }
@@ -228,6 +367,7 @@ class _ScanQuantityInputState extends State<_ScanQuantityInput> {
       textAlign: TextAlign.center,
       keyboardType: TextInputType.number,
       maxLines: 1,
+      textInputAction: TextInputAction.done,
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: const InputDecoration(
         isDense: true,
@@ -240,6 +380,8 @@ class _ScanQuantityInputState extends State<_ScanQuantityInput> {
           widget.onChanged(parsed);
         }
       },
+      onSubmitted: (_) => FocusScope.of(context).unfocus(),
+      onEditingComplete: () => FocusScope.of(context).unfocus(),
     );
   }
 }

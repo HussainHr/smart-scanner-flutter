@@ -24,10 +24,12 @@ abstract final class AppTheme {
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: _surface,
-        foregroundColor: _onSurface,
-        titleTextStyle: TextStyle(
-          color: _onSurface,
+        backgroundColor: _primary,
+        foregroundColor: Colors.white,
+        iconTheme: const IconThemeData(color: Colors.white),
+        actionsIconTheme: const IconThemeData(color: Colors.white),
+        titleTextStyle: const TextStyle(
+          color: Colors.white,
           fontSize: 20,
           fontWeight: FontWeight.w600,
           letterSpacing: -0.2,

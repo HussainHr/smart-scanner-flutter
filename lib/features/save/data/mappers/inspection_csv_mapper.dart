@@ -30,6 +30,6 @@ abstract final class InspectionFileNameBuilder {
 
   static String build() {
     final timestamp = _timestampFormat.format(DateTime.now());
-    return 'inspection_$timestamp.csv';
+    return 'inspection_$timestamp.xlsx';
   }
 }

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:path_provider/path_provider.dart';
@@ -25,22 +26,22 @@ class MediaStoreSaveResult {
 abstract final class MediaStoreStorage {
   static final MediaStore _mediaStore = MediaStore();
 
-  static Future<MediaStoreSaveResult> saveCsv({
+  static Future<MediaStoreSaveResult> saveSpreadsheet({
     required String fileName,
-    required String csvContent,
+    required Uint8List fileBytes,
     required int itemCount,
   }) async {
     if (!kIsWeb && Platform.isAndroid) {
-      return _saveCsvOnAndroid(
+      return _saveSpreadsheetOnAndroid(
         fileName: fileName,
-        csvContent: csvContent,
+        fileBytes: fileBytes,
         itemCount: itemCount,
       );
     }
 
-    return _saveCsvToAppStorage(
+    return _saveSpreadsheetToAppStorage(
       fileName: fileName,
-      csvContent: csvContent,
+      fileBytes: fileBytes,
       itemCount: itemCount,
     );
   }
@@ -68,14 +69,14 @@ abstract final class MediaStoreStorage {
       for (final file in directory
           .listSync()
           .whereType<File>()
-          .where((file) => file.path.toLowerCase().endsWith('.csv'))) {
+          .where((file) => _isSupportedExportFile(file.path))) {
         final stat = await file.stat();
         entriesByKey[file.path] = ScanFileEntry(
           path: file.path,
           fileName: _fileNameFromPath(file.path),
           modifiedAt: stat.modified,
           sizeInBytes: stat.size,
-          rowCount: _countCsvRows(file),
+          rowCount: _countSpreadsheetRows(file),
         );
       }
     }
@@ -103,14 +104,14 @@ abstract final class MediaStoreStorage {
     return ScansDirectory.toDisplayPath(directory.path);
   }
 
-  static Future<MediaStoreSaveResult> _saveCsvOnAndroid({
+  static Future<MediaStoreSaveResult> _saveSpreadsheetOnAndroid({
     required String fileName,
-    required String csvContent,
+    required Uint8List fileBytes,
     required int itemCount,
   }) async {
     final tempDirectory = await getTemporaryDirectory();
     final tempFile = File('${tempDirectory.path}/$fileName');
-    await tempFile.writeAsString(csvContent, encoding: utf8);
+    await tempFile.writeAsBytes(fileBytes, flush: true);
 
     final saveInfo = await _mediaStore.saveFile(
       tempFilePath: tempFile.path,
@@ -137,7 +138,7 @@ abstract final class MediaStoreStorage {
         contentUri: contentUri,
         savedAt: DateTime.now(),
         itemCount: itemCount,
-        sizeInBytes: csvContent.length,
+        sizeInBytes: fileBytes.length,
       ),
     );
 
@@ -148,14 +149,14 @@ abstract final class MediaStoreStorage {
     );
   }
 
-  static Future<MediaStoreSaveResult> _saveCsvToAppStorage({
+  static Future<MediaStoreSaveResult> _saveSpreadsheetToAppStorage({
     required String fileName,
-    required String csvContent,
+    required Uint8List fileBytes,
     required int itemCount,
   }) async {
     final scansDirectory = await ScansDirectory.resolveForAppStorage();
     final file = File('${scansDirectory.path}/$fileName');
-    await file.writeAsString(csvContent, encoding: utf8);
+    await file.writeAsBytes(fileBytes, flush: true);
 
     await SavedFileIndex.add(
       SavedFileIndexEntry(
@@ -163,7 +164,7 @@ abstract final class MediaStoreStorage {
         path: file.path,
         savedAt: DateTime.now(),
         itemCount: itemCount,
-        sizeInBytes: csvContent.length,
+        sizeInBytes: fileBytes.length,
       ),
     );
 
@@ -177,6 +178,10 @@ abstract final class MediaStoreStorage {
     final entries = <ScanFileEntry>[];
 
     for (final indexEntry in await SavedFileIndex.readAll()) {
+      if (!_isSupportedExportFile(indexEntry.fileName)) {
+        continue;
+      }
+
       if (indexEntry.contentUri != null) {
         final exists = await _mediaStore.isFileUriExist(
           uriString: indexEntry.contentUri!,
@@ -223,7 +228,7 @@ abstract final class MediaStoreStorage {
     for (final file in directory
         .listSync()
         .whereType<File>()
-        .where((file) => file.path.toLowerCase().endsWith('.csv'))) {
+        .where((file) => _isSupportedExportFile(file.path))) {
       final stat = await file.stat();
       entries.add(
         ScanFileEntry(
@@ -231,7 +236,7 @@ abstract final class MediaStoreStorage {
           fileName: _fileNameFromPath(file.path),
           modifiedAt: stat.modified,
           sizeInBytes: stat.size,
-          rowCount: _countCsvRows(file),
+          rowCount: _countSpreadsheetRows(file),
         ),
       );
     }
@@ -248,6 +253,30 @@ abstract final class MediaStoreStorage {
     return path.substring(separatorIndex + 1);
   }
 
+  static bool _isSupportedExportFile(String path) {
+    final lower = path.toLowerCase();
+    return lower.endsWith('.csv') || lower.endsWith('.xlsx');
+  }
+
+  static int _countSpreadsheetRows(File file) {
+    if (file.path.toLowerCase().endsWith('.xlsx')) {
+      try {
+        final bytes = file.readAsBytesSync();
+        final excel = Excel.decodeBytes(bytes);
+        final sheet = excel.tables.values.firstOrNull;
+        if (sheet == null || sheet.maxRows <= 1) {
+          return 0;
+        }
+
+        return sheet.maxRows - 1;
+      } catch (_) {
+        return 0;
+      }
+    }
+
+    return _countCsvRows(file);
+  }
+
   static int _countCsvRows(File file) {
     final lines = file
         .readAsLinesSync()
@@ -261,7 +290,7 @@ abstract final class MediaStoreStorage {
     return lines.length - 1;
   }
 
-  static Future<String> readCsvContent(ScanFileEntry entry) async {
+  static Future<Uint8List> readFileBytes(ScanFileEntry entry) async {
     final contentUri = entry.contentUri ??
         (await SavedFileIndex.findByFileName(entry.fileName))?.contentUri;
 
@@ -274,13 +303,13 @@ abstract final class MediaStoreStorage {
       );
 
       if (wasRead && tempFile.existsSync()) {
-        return tempFile.readAsString(encoding: utf8);
+        return tempFile.readAsBytes();
       }
     }
 
     final file = File(entry.path);
     if (file.existsSync()) {
-      return file.readAsString(encoding: utf8);
+      return file.readAsBytes();
     }
 
     if (!kIsWeb && Platform.isAndroid && MediaStore.appFolder.isNotEmpty) {
@@ -294,18 +323,23 @@ abstract final class MediaStoreStorage {
       );
 
       if (wasRead && tempFile.existsSync()) {
-        return tempFile.readAsString(encoding: utf8);
+        return tempFile.readAsBytes();
       }
     }
 
     throw const AppException('Could not read the selected file.');
   }
 
+  static Future<String> readCsvContent(ScanFileEntry entry) async {
+    final bytes = await readFileBytes(entry);
+    return utf8.decode(bytes, allowMalformed: true);
+  }
+
   static Future<File> prepareShareableFile(ScanFileEntry entry) async {
-    final content = await readCsvContent(entry);
+    final bytes = await readFileBytes(entry);
     final tempDirectory = await getTemporaryDirectory();
     final shareFile = File('${tempDirectory.path}/share_${entry.fileName}');
-    await shareFile.writeAsString(content, encoding: utf8);
+    await shareFile.writeAsBytes(bytes, flush: true);
     return shareFile;
   }
 

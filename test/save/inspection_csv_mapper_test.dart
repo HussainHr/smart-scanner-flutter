@@ -33,11 +33,11 @@ void main() {
   });
 
   group('InspectionFileNameBuilder', () {
-    test('builds inspection csv filename with timestamp', () {
+    test('builds inspection spreadsheet filename with timestamp', () {
       final fileName = InspectionFileNameBuilder.build();
 
       expect(fileName, startsWith('inspection_'));
-      expect(fileName, endsWith('.csv'));
+      expect(fileName, endsWith('.xlsx'));
     });
   });
 }

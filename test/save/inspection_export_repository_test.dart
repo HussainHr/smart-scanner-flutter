@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_scanner/core/errors/app_exception.dart';
 import 'package:smart_scanner/features/save/data/datasources/inspection_export_datasource.dart';
@@ -10,9 +12,9 @@ class _FakeInspectionExportDatasource extends InspectionExportDatasource {
   SavedScanFile? lastSaved;
 
   @override
-  Future<SavedScanFile> saveCsv({
+  Future<SavedScanFile> saveSpreadsheet({
     required String fileName,
-    required String csvContent,
+    required Uint8List fileBytes,
     required int itemCount,
   }) async {
     lastSaved = SavedScanFile(
@@ -43,7 +45,7 @@ void main() {
       );
     });
 
-    test('exports items to csv through datasource', () async {
+    test('exports items to spreadsheet through datasource', () async {
       final datasource = _FakeInspectionExportDatasource();
       final repository = InspectionExportRepositoryImpl(datasource);
       final items = [
@@ -59,6 +61,7 @@ void main() {
 
       expect(savedFile.itemCount, 1);
       expect(savedFile.fileName, startsWith('inspection_'));
+      expect(savedFile.fileName, endsWith('.xlsx'));
       expect(datasource.lastSaved?.itemCount, 1);
     });
   });

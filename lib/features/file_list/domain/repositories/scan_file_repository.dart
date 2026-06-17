@@ -3,6 +3,8 @@ import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry
 abstract class ScanFileRepository {
   Future<List<ScanFileEntry>> listSavedFiles();
 
+  Future<List<int>> readFileBytes(ScanFileEntry entry);
+
   Future<String> readFileContent(ScanFileEntry entry);
 
   Future<void> shareFile(ScanFileEntry entry);
