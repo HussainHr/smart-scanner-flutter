@@ -60,3 +60,40 @@ class FileShareNotifier extends Notifier<bool> {
 final fileShareProvider = NotifierProvider<FileShareNotifier, bool>(
   FileShareNotifier.new,
 );
+
+class FileSendNotifier extends Notifier<bool> {
+  @override
+  bool build() => false;
+
+  Future<void> send(ScanFileEntry entry) async {
+    state = true;
+    try {
+      await ref.read(scanFileRepositoryProvider).sendFileByEmail(entry);
+    } finally {
+      state = false;
+    }
+  }
+}
+
+final fileSendProvider = NotifierProvider<FileSendNotifier, bool>(
+  FileSendNotifier.new,
+);
+
+class FileDeleteNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  Future<void> delete(ScanFileEntry entry) async {
+    state = entry.fileName;
+    try {
+      await ref.read(scanFileRepositoryProvider).deleteFile(entry);
+      await ref.read(fileListProvider.notifier).refresh();
+    } finally {
+      state = null;
+    }
+  }
+}
+
+final fileDeleteProvider = NotifierProvider<FileDeleteNotifier, String?>(
+  FileDeleteNotifier.new,
+);

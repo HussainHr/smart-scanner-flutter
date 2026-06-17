@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
-import 'package:smart_scanner/features/scanner/domain/entities/scan_type.dart';
+import 'package:smart_scanner/features/scanner/presentation/providers/inspection_list_notifier.dart';
+import 'package:smart_scanner/features/scanner/presentation/widgets/inspection_data_table.dart';
 
-class InspectionListPanel extends StatelessWidget {
+class InspectionListPanel extends ConsumerWidget {
   const InspectionListPanel({
     super.key,
     required this.items,
@@ -20,8 +23,10 @@ class InspectionListPanel extends StatelessWidget {
   final bool isSaving;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final colorScheme = Theme.of(context).colorScheme;
+    final quantity = ref.watch(scanQuantityProvider);
+    final lastScannedCode = ref.watch(lastScannedCodeProvider);
 
     return Container(
       decoration: BoxDecoration(
@@ -50,9 +55,11 @@ class InspectionListPanel extends StatelessWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 12),
             child: Row(
               children: [
+                const Icon(Icons.grid_view_rounded, size: 18),
+                const SizedBox(width: 8),
                 Text(
                   'Inspection List',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -61,8 +68,7 @@ class InspectionListPanel extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
                     color: colorScheme.primary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
@@ -89,7 +95,7 @@ class InspectionListPanel extends StatelessWidget {
                           ),
                         )
                       : const Icon(Icons.save_rounded, size: 18),
-                  label: Text(isSaving ? 'Saving...' : 'Save CSV'),
+                  label: Text(isSaving ? 'Saving...' : 'Save'),
                   style: FilledButton.styleFrom(
                     minimumSize: const Size(0, 40),
                     padding: const EdgeInsets.symmetric(
@@ -105,145 +111,71 @@ class InspectionListPanel extends StatelessWidget {
               ],
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            child: Row(
+              mainAxisAlignment: .start,
+              crossAxisAlignment: .start,
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: _LabeledField(
+                    label: 'Code',
+                    child: Text(
+                      lastScannedCode ?? '',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: lastScannedCode == null
+                                ? colorScheme.onSurface.withValues(alpha: 0.35)
+                                : null,
+                          ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  flex: 2,
+                  child: _LabeledField(
+                    label: 'Quantity',
+                    child: _ScanQuantityInput(
+                      quantity: quantity,
+                      onChanged: (value) => ref.read(scanQuantityProvider.notifier).setQuantity(value),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: items.isEmpty
                 ? Center(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.list_alt_rounded,
-                            size: 40,
-                            color: colorScheme.onSurface.withValues(alpha: 0.25),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            'No scans yet',
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleSmall
-                                ?.copyWith(fontWeight: FontWeight.w600),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            scanMode == ScanMode.ocr
-                                ? 'Point the camera at text and tap Scan Text.'
-                                : 'Point the camera at a code and tap Scan.',
-                            textAlign: TextAlign.center,
-                            style:
-                                Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      color: colorScheme.onSurface
-                                          .withValues(alpha: 0.55),
-                                      height: 1.4,
-                                    ),
-                          ),
-                        ],
+                      child: Text(
+                        'There is no Data.',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: colorScheme.onSurface.withValues(alpha: 0.5),
+                            ),
                       ),
                     ),
                   )
-                : ListView.separated(
+                : SingleChildScrollView(
                     padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-                    itemCount: items.length,
-                    separatorBuilder: (context, index) => const SizedBox(height: 8),
-                    itemBuilder: (context, index) {
-                      final item = items[index];
-                      final accentColor = switch (item.type) {
-                        ScanType.qr => colorScheme.secondary,
-                        ScanType.ocr => const Color(0xFF0F766E),
-                        ScanType.barcode => colorScheme.primary,
-                      };
-                      final icon = switch (item.type) {
-                        ScanType.qr => Icons.qr_code_2_rounded,
-                        ScanType.ocr => Icons.text_fields_rounded,
-                        ScanType.barcode => Icons.barcode_reader,
-                      };
-
-                      return Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: colorScheme.surface,
-                          borderRadius: BorderRadius.circular(14),
-                          border: Border.all(
-                            color:
-                                colorScheme.outlineVariant.withValues(alpha: 0.6),
+                    child: InspectionDataTable(
+                      rows: [
+                        for (final item in items)
+                          InspectionTableRow(
+                            id: item.id,
+                            code: item.value,
+                            quantity: item.quantity,
                           ),
-                        ),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Container(
-                              width: 36,
-                              height: 36,
-                              decoration: BoxDecoration(
-                                color: accentColor.withValues(alpha: 0.12),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Icon(
-                                icon,
-                                size: 20,
-                                color: accentColor,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    item.value,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyMedium
-                                        ?.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Row(
-                                    children: [
-                                      Text(
-                                        item.type.label,
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.copyWith(
-                                              color: colorScheme.onSurface
-                                                  .withValues(alpha: 0.55),
-                                            ),
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        _formatTime(item.scannedAt),
-                                        style: Theme.of(context)
-                                            .textTheme
-                                            .labelSmall
-                                            ?.copyWith(
-                                              color: colorScheme.onSurface
-                                                  .withValues(alpha: 0.45),
-                                            ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Text(
-                              '#${index + 1}',
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .labelSmall
-                                  ?.copyWith(
-                                    color: colorScheme.onSurface
-                                        .withValues(alpha: 0.4),
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
+                      ],
+                      showResetColumn: true,
+                      onReset: (id) => ref.read(inspectionListProvider.notifier).removeScan(id),
+                      onQuantityChanged: (id, quantity) => ref.read(inspectionListProvider.notifier).updateQuantity(id, quantity),
+                    ),
                   ),
           ),
         ],
@@ -252,9 +184,109 @@ class InspectionListPanel extends StatelessWidget {
   }
 }
 
-String _formatTime(DateTime dateTime) {
-  final hour = dateTime.hour.toString().padLeft(2, '0');
-  final minute = dateTime.minute.toString().padLeft(2, '0');
-  final second = dateTime.second.toString().padLeft(2, '0');
-  return '$hour:$minute:$second';
+class _ScanQuantityInput extends StatefulWidget {
+  const _ScanQuantityInput({
+    required this.quantity,
+    required this.onChanged,
+  });
+
+  final int quantity;
+  final ValueChanged<int> onChanged;
+
+  @override
+  State<_ScanQuantityInput> createState() => _ScanQuantityInputState();
+}
+
+class _ScanQuantityInputState extends State<_ScanQuantityInput> {
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: '${widget.quantity}');
+  }
+
+  @override
+  void didUpdateWidget(covariant _ScanQuantityInput oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.quantity != widget.quantity &&
+        _controller.text != '${widget.quantity}') {
+      _controller.text = '${widget.quantity}';
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: _controller,
+      textAlign: TextAlign.center,
+      keyboardType: TextInputType.number,
+      maxLines: 1,
+      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+      decoration: const InputDecoration(
+        isDense: true,
+        border: InputBorder.none,
+        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+      ),
+      onChanged: (value) {
+        final parsed = int.tryParse(value);
+        if (parsed != null && parsed > 0) {
+          widget.onChanged(parsed);
+        }
+      },
+    );
+  }
+}
+
+class _LabeledField extends StatelessWidget {
+  const _LabeledField({
+    required this.label,
+    required this.child,
+  });
+
+  final String label;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          decoration: BoxDecoration(
+            color: colorScheme.primary.withValues(alpha: 0.12),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(10)),
+          ),
+          child: Text(
+            label,
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                  color: colorScheme.primary,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.6),
+            ),
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(10),
+            ),
+          ),
+          child: child,
+        ),
+      ],
+    );
+  }
 }

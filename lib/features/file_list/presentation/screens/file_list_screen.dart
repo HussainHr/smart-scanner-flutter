@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_scanner/core/constants/app_constants.dart';
 import 'package:smart_scanner/core/storage/media_store_storage.dart';
+import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry.dart';
 import 'package:smart_scanner/features/file_list/presentation/providers/file_list_providers.dart';
 import 'package:smart_scanner/features/file_list/presentation/widgets/scan_file_list_tile.dart';
 
@@ -41,6 +42,8 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
   @override
   Widget build(BuildContext context) {
     final fileListAsync = ref.watch(fileListProvider);
+    final deletingFileName = ref.watch(fileDeleteProvider);
+    final isSending = ref.watch(fileSendProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
@@ -124,10 +127,14 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
                       final entry = files[index];
                       return ScanFileListTile(
                         entry: entry,
-                        onTap: () => context.push(
+                        isDeleting: deletingFileName == entry.fileName,
+                        isSending: isSending,
+                        onView: () => context.push(
                           AppConstants.routeFileView,
                           extra: entry,
                         ),
+                        onDelete: () => _confirmDelete(context, ref, entry),
+                        onSend: () => _sendFile(context, ref, entry),
                       );
                     },
                   ),
@@ -138,6 +145,93 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDelete(
+    BuildContext context,
+    WidgetRef ref,
+    ScanFileEntry entry,
+  ) async {
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Delete file?'),
+          content: Text('Delete ${entry.fileName} from saved files?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Cancel'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFFDC2626),
+              ),
+              child: const Text('Delete'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldDelete != true || !context.mounted) {
+      return;
+    }
+
+    try {
+      await ref.read(fileDeleteProvider.notifier).delete(entry);
+
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('File deleted.')),
+        );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('Failed to delete file: $error')),
+        );
+    }
+  }
+
+  Future<void> _sendFile(
+    BuildContext context,
+    WidgetRef ref,
+    ScanFileEntry entry,
+  ) async {
+    try {
+      await ref.read(fileSendProvider.notifier).send(entry);
+
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('Email share opened.')),
+        );
+    } catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('Failed to send file: $error')),
+        );
+    }
   }
 }
 

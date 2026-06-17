@@ -5,14 +5,14 @@ void main() {
   group('CsvPreviewMapper', () {
     test('parses csv rows into string cells', () {
       const content =
-          '#,Type,Value,Scanned At\n1,Barcode,"ABC,123",2026-06-16 14:30:45\n2,QR Code,QR-VALUE,2026-06-16 14:31:10';
+          '#,Code,Quantity,Type,Scanned At\n1,A~001-12345,2,Barcode,2026-06-16 14:30:45\n2,QR-VALUE,1,QR Code,2026-06-16 14:31:10';
 
       final rows = CsvPreviewMapper.parseRows(content);
 
       expect(rows.length, 3);
-      expect(rows.first, ['#', 'Type', 'Value', 'Scanned At']);
-      expect(rows[1][2], 'ABC,123');
-      expect(rows[2][1], 'QR Code');
+      expect(rows.first, ['#', 'Code', 'Quantity', 'Type', 'Scanned At']);
+      expect(rows[1][1], 'A~001-12345');
+      expect(rows[1][2], '2');
     });
 
     test('returns empty list for blank content', () {

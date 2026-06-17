@@ -53,6 +53,12 @@ abstract final class SavedFileIndex {
     await _writeAll(entries);
   }
 
+  static Future<void> removeByFileName(String fileName) async {
+    final entries = await readAll();
+    entries.removeWhere((entry) => entry.fileName == fileName);
+    await _writeAll(entries);
+  }
+
   static Future<SavedFileIndexEntry?> findByFileName(String fileName) async {
     for (final entry in await readAll()) {
       if (entry.fileName == fileName) {

@@ -26,4 +26,14 @@ class ScanFileRepositoryImpl implements ScanFileRepository {
   Future<void> shareFile(ScanFileEntry entry) {
     return _contentDatasource.share(entry);
   }
+
+  @override
+  Future<void> sendFileByEmail(ScanFileEntry entry) {
+    return _contentDatasource.sendByEmail(entry);
+  }
+
+  @override
+  Future<void> deleteFile(ScanFileEntry entry) {
+    return _contentDatasource.delete(entry);
+  }
 }

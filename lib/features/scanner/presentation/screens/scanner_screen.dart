@@ -40,7 +40,7 @@ class ScannerScreen extends ConsumerWidget {
       body: Column(
         children: [
           Expanded(
-            flex: 5,
+            flex: 4,
             child: Padding(
               padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
               child: Stack(
@@ -76,7 +76,7 @@ class ScannerScreen extends ConsumerWidget {
                   Center(
                     child: Container(
                       width: 220,
-                      height: isOcrMode ? 140 : 220,
+                      height: isOcrMode ? 180 : 200,
                       decoration: BoxDecoration(
                         border: Border.all(
                           color: Colors.white.withValues(alpha: 0.85),
@@ -105,7 +105,7 @@ class ScannerScreen extends ConsumerWidget {
                   Positioned(
                     left: 10,
                     right: 10,
-                    bottom: 16,
+                    bottom: 14,
                     child: Center(
                       child: FilledButton.icon(
                         onPressed: isProcessing || isSaving
@@ -145,7 +145,7 @@ class ScannerScreen extends ConsumerWidget {
             ),
           ),
           Expanded(
-            flex: 4,
+            flex: 5,
             child: InspectionListPanel(
               items: inspectionList,
               scanMode: scanMode,
@@ -237,11 +237,13 @@ class ScannerScreen extends ConsumerWidget {
     required String value,
     required ScanType type,
   }) {
+    final quantity = ref.read(scanQuantityProvider);
     final item = ScanItem(
       id: DateTime.now().microsecondsSinceEpoch.toString(),
       value: value,
       type: type,
       scannedAt: DateTime.now(),
+      quantity: quantity,
     );
 
     final result = ref.read(inspectionListProvider.notifier).addScan(item);
@@ -249,12 +251,14 @@ class ScannerScreen extends ConsumerWidget {
     if (result == AddScanResult.duplicate) {
       _showMessage(
         context,
-        'Duplicate scan: this value is already in the inspection list.',
+        'Duplicate scan: this code is already in the inspection list.',
         isWarning: true,
       );
       return;
     }
 
+    ref.read(lastScannedCodeProvider.notifier).setCode(value);
+    ref.read(scanQuantityProvider.notifier).reset();
     _showMessage(context, 'Added to inspection list.');
   }
 
@@ -274,6 +278,8 @@ class ScannerScreen extends ConsumerWidget {
           .exportInspectionList(items);
 
       ref.read(inspectionListProvider.notifier).clear();
+      ref.read(lastScannedCodeProvider.notifier).clear();
+      ref.read(scanQuantityProvider.notifier).reset();
 
       if (!context.mounted) {
         return;

@@ -22,4 +22,24 @@ class ScanFileContentDatasource {
       text: 'Inspection scan export',
     );
   }
+
+  Future<void> sendByEmail(ScanFileEntry entry) async {
+    final file = await MediaStoreStorage.prepareShareableFile(entry);
+
+    await Share.shareXFiles(
+      [
+        XFile(
+          file.path,
+          mimeType: 'text/csv',
+          name: entry.fileName,
+        ),
+      ],
+      subject: 'Inspection List - ${entry.fileName}',
+      text: 'Please find the attached inspection list CSV.',
+    );
+  }
+
+  Future<void> delete(ScanFileEntry entry) {
+    return MediaStoreStorage.deleteCsvFile(entry);
+  }
 }

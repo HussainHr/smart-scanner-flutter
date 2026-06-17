@@ -16,6 +16,7 @@ void main() {
         value: '1234567890',
         type: ScanType.barcode,
         scannedAt: DateTime(2026, 6, 16, 10, 30),
+        quantity: 3,
       );
 
       final result = notifier.addScan(item);
@@ -43,6 +44,34 @@ void main() {
 
       expect(result, AddScanResult.duplicate);
       expect(container.read(inspectionListProvider).length, 1);
+    });
+
+    test('removeScan deletes a single item', () {
+      final container = ProviderContainer();
+      addTearDown(container.dispose);
+
+      final notifier = container.read(inspectionListProvider.notifier);
+      notifier.addScan(
+        ScanItem(
+          id: '1',
+          value: 'ABC',
+          type: ScanType.barcode,
+          scannedAt: DateTime.now(),
+        ),
+      );
+      notifier.addScan(
+        ScanItem(
+          id: '2',
+          value: 'DEF',
+          type: ScanType.qr,
+          scannedAt: DateTime.now(),
+        ),
+      );
+
+      notifier.removeScan('1');
+
+      expect(container.read(inspectionListProvider).length, 1);
+      expect(container.read(inspectionListProvider).first.value, 'DEF');
     });
 
     test('clear removes all items', () {

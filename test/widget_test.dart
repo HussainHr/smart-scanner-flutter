@@ -39,7 +39,7 @@ void main() {
     expect(find.text('Scanner'), findsWidgets);
     expect(find.text('Inspection List'), findsOneWidget);
     expect(find.text('Scan'), findsOneWidget);
-    expect(find.text('Save CSV'), findsOneWidget);
+    expect(find.text('Save'), findsOneWidget);
     expect(find.text('Barcode / QR'), findsOneWidget);
   });
 

@@ -29,10 +29,7 @@ class FileDetailScreen extends ConsumerWidget {
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
         ),
-        title: Text(
-          entry.fileName,
-          overflow: TextOverflow.ellipsis,
-        ),
+        title: const Text('View Details'),
         actions: [
           IconButton(
             tooltip: 'Share CSV',

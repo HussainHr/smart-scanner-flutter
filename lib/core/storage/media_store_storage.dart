@@ -308,4 +308,26 @@ abstract final class MediaStoreStorage {
     await shareFile.writeAsString(content, encoding: utf8);
     return shareFile;
   }
+
+  static Future<void> deleteCsvFile(ScanFileEntry entry) async {
+    final indexEntry = await SavedFileIndex.findByFileName(entry.fileName);
+    final contentUri = entry.contentUri ?? indexEntry?.contentUri;
+
+    if (!kIsWeb && Platform.isAndroid && contentUri != null) {
+      final wasDeleted = await _mediaStore.deleteFileUsingUri(
+        uriString: contentUri,
+      );
+
+      if (!wasDeleted) {
+        throw const AppException('Failed to delete the selected file.');
+      }
+    } else {
+      final file = File(entry.path);
+      if (file.existsSync()) {
+        await file.delete();
+      }
+    }
+
+    await SavedFileIndex.removeByFileName(entry.fileName);
+  }
 }
