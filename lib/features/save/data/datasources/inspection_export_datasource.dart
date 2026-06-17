@@ -1,6 +1,4 @@
-import 'dart:io';
-
-import 'package:smart_scanner/core/storage/scans_directory.dart';
+import 'package:smart_scanner/core/storage/media_store_storage.dart';
 import 'package:smart_scanner/features/save/domain/entities/saved_scan_file.dart';
 
 class InspectionExportDatasource {
@@ -9,14 +7,15 @@ class InspectionExportDatasource {
     required String csvContent,
     required int itemCount,
   }) async {
-    final scansDir = await ScansDirectory.resolve();
-    final file = File('${scansDir.path}/$fileName');
-
-    await file.writeAsString(csvContent);
+    final savedFile = await MediaStoreStorage.saveCsv(
+      fileName: fileName,
+      csvContent: csvContent,
+      itemCount: itemCount,
+    );
 
     return SavedScanFile(
-      path: file.path,
-      fileName: fileName,
+      path: savedFile.path,
+      fileName: savedFile.fileName,
       savedAt: DateTime.now(),
       itemCount: itemCount,
     );

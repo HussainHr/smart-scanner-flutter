@@ -7,5 +7,7 @@ class AppConstants {
   static const String routeScanner = '/scanner';
   static const String routeFileList = '/file-list';
 
-  static const String scansDirectoryName = 'scans';
+  static const String scansDirectoryName = 'Smart Scanner';
+
+  static String get publicScansPathLabel => 'Download/$scansDirectoryName';
 }

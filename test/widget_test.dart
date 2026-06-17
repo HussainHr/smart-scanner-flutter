@@ -2,6 +2,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_scanner/app.dart';
 import 'package:smart_scanner/core/constants/app_constants.dart';
+import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry.dart';
+import 'package:smart_scanner/features/file_list/presentation/providers/file_list_providers.dart';
+
+class _EmptyFileListNotifier extends FileListNotifier {
+  @override
+  Future<List<ScanFileEntry>> build() async => [];
+}
 
 void main() {
   testWidgets('Home screen shows main menu options', (tester) async {
@@ -34,5 +41,23 @@ void main() {
     expect(find.text('Scan'), findsOneWidget);
     expect(find.text('Save CSV'), findsOneWidget);
     expect(find.text('Barcode / QR'), findsOneWidget);
+  });
+
+  testWidgets('Home navigates to saved file list screen', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          fileListProvider.overrideWith(_EmptyFileListNotifier.new),
+        ],
+        child: const SmartScannerApp(),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Saved File List'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Saved File List'), findsWidgets);
+    expect(find.text('No saved files yet'), findsOneWidget);
   });
 }

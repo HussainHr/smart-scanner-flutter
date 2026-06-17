@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smart_scanner/core/constants/app_constants.dart';
 import 'package:smart_scanner/core/errors/app_exception.dart';
 import 'package:smart_scanner/features/save/presentation/providers/save_providers.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
@@ -280,7 +281,7 @@ class ScannerScreen extends ConsumerWidget {
 
       _showMessage(
         context,
-        'Saved ${savedFile.itemCount} items to ${savedFile.fileName}.',
+        'Saved ${savedFile.itemCount} items to ${AppConstants.publicScansPathLabel}/${savedFile.fileName}.',
       );
     } on AppException catch (error) {
       if (!context.mounted) {
