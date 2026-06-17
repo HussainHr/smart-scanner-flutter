@@ -1,5 +1,5 @@
 name: smart_scanner
-description: "Smart scanning application for barcode, QR code, and text recognition with CSV generation, file sharing, and local file management."
+description: "Smart Scanner — barcode, QR, and OCR scanning with inspection lists and spreadsheet export."
 # The following line prevents the package from being accidentally published to
 # pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev

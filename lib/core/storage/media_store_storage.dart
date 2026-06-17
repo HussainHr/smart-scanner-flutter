@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:io';
 
 import 'package:excel/excel.dart';
@@ -46,7 +45,7 @@ abstract final class MediaStoreStorage {
     );
   }
 
-  static Future<List<ScanFileEntry>> listCsvFiles() async {
+  static Future<List<ScanFileEntry>> listSavedFiles() async {
     final entriesByKey = <String, ScanFileEntry>{};
 
     if (!kIsWeb && Platform.isAndroid) {
@@ -330,11 +329,6 @@ abstract final class MediaStoreStorage {
     throw const AppException('Could not read the selected file.');
   }
 
-  static Future<String> readCsvContent(ScanFileEntry entry) async {
-    final bytes = await readFileBytes(entry);
-    return utf8.decode(bytes, allowMalformed: true);
-  }
-
   static Future<File> prepareShareableFile(ScanFileEntry entry) async {
     final bytes = await readFileBytes(entry);
     final tempDirectory = await getTemporaryDirectory();
@@ -343,7 +337,7 @@ abstract final class MediaStoreStorage {
     return shareFile;
   }
 
-  static Future<void> deleteCsvFile(ScanFileEntry entry) async {
+  static Future<void> deleteSavedFile(ScanFileEntry entry) async {
     final indexEntry = await SavedFileIndex.findByFileName(entry.fileName);
     final contentUri = entry.contentUri ?? indexEntry?.contentUri;
 

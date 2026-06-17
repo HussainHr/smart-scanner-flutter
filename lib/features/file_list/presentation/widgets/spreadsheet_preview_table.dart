@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/inspection_data_table.dart';
 
-class CsvPreviewTable extends StatelessWidget {
-  const CsvPreviewTable({
+class SpreadsheetPreviewTable extends StatelessWidget {
+  const SpreadsheetPreviewTable({
     super.key,
     required this.rows,
   });
@@ -31,14 +31,9 @@ class CsvPreviewTable extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          InspectionDataTable(
-            rows: tableRows,
-            previewStyle: true,
-          ),
-        ],
+      child: InspectionDataTable(
+        rows: tableRows,
+        previewStyle: true,
       ),
     );
   }

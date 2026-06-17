@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:smart_scanner/core/widgets/quantity_text_field.dart';
 
 class InspectionDataTable extends StatelessWidget {
   const InspectionDataTable({
@@ -54,17 +54,17 @@ class InspectionDataTable extends StatelessWidget {
             decoration: BoxDecoration(color: headerColor),
             children: [
               if (showResetColumn)
-                _HeaderCell(
+                _TableHeaderCell(
                   label: 'Reset',
                   textColor: headerTextColor,
                   previewStyle: previewStyle,
                 ),
-              _HeaderCell(
+              _TableHeaderCell(
                 label: 'Code',
                 textColor: headerTextColor,
                 previewStyle: previewStyle,
               ),
-              _HeaderCell(
+              _TableHeaderCell(
                 label: 'Quantity',
                 textColor: headerTextColor,
                 previewStyle: previewStyle,
@@ -122,8 +122,9 @@ class InspectionDataTable extends StatelessWidget {
                                 ?.copyWith(fontWeight: FontWeight.w600),
                           ),
                         )
-                      : _QuantityField(
+                      : QuantityTextField(
                           quantity: rows[index].quantity,
+                          showBorder: true,
                           onChanged: (quantity) =>
                               onQuantityChanged!(rows[index].id, quantity),
                           onFocus: onRowSelected == null
@@ -151,8 +152,8 @@ class InspectionTableRow {
   final int quantity;
 }
 
-class _HeaderCell extends StatelessWidget {
-  const _HeaderCell({
+class _TableHeaderCell extends StatelessWidget {
+  const _TableHeaderCell({
     required this.label,
     required this.textColor,
     this.previewStyle = false,
@@ -180,89 +181,6 @@ class _HeaderCell extends StatelessWidget {
               fontSize: previewStyle ? 13 : null,
             ),
       ),
-    );
-  }
-}
-
-class _QuantityField extends StatefulWidget {
-  const _QuantityField({
-    required this.quantity,
-    required this.onChanged,
-    this.onFocus,
-  });
-
-  final int quantity;
-  final ValueChanged<int> onChanged;
-  final VoidCallback? onFocus;
-
-  @override
-  State<_QuantityField> createState() => _QuantityFieldState();
-}
-
-class _QuantityFieldState extends State<_QuantityField> {
-  late final TextEditingController _controller;
-  late final FocusNode _focusNode;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = TextEditingController(text: '${widget.quantity}');
-    _focusNode = FocusNode()
-      ..addListener(() {
-        if (_focusNode.hasFocus) {
-          widget.onFocus?.call();
-        }
-      });
-  }
-
-  @override
-  void didUpdateWidget(covariant _QuantityField oldWidget) {
-    super.didUpdateWidget(oldWidget);
-    if (oldWidget.quantity != widget.quantity &&
-        _controller.text != '${widget.quantity}') {
-      _controller.text = '${widget.quantity}';
-    }
-  }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _commitValue() {
-    final parsed = int.tryParse(_controller.text);
-    if (parsed != null && parsed > 0) {
-      widget.onChanged(parsed);
-    }
-    FocusScope.of(context).unfocus();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: _controller,
-      focusNode: _focusNode,
-      textAlign: TextAlign.center,
-      keyboardType: TextInputType.number,
-      textInputAction: TextInputAction.done,
-      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-      decoration: InputDecoration(
-        isDense: true,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      onChanged: (value) {
-        final parsed = int.tryParse(value);
-        if (parsed != null && parsed > 0) {
-          widget.onChanged(parsed);
-        }
-      },
-      onSubmitted: (_) => _commitValue(),
-      onEditingComplete: _commitValue,
     );
   }
 }

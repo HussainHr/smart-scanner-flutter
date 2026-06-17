@@ -5,8 +5,6 @@ abstract class ScanFileRepository {
 
   Future<List<int>> readFileBytes(ScanFileEntry entry);
 
-  Future<String> readFileContent(ScanFileEntry entry);
-
   Future<void> shareFile(ScanFileEntry entry);
 
   Future<void> sendFileByEmail(ScanFileEntry entry);

@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_scanner/features/save/data/mappers/inspection_csv_mapper.dart';
+import 'package:smart_scanner/features/save/data/mappers/inspection_export_filename.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_type.dart';
 
@@ -32,9 +33,9 @@ void main() {
     });
   });
 
-  group('InspectionFileNameBuilder', () {
+  group('InspectionExportFilename', () {
     test('builds inspection spreadsheet filename with timestamp', () {
-      final fileName = InspectionFileNameBuilder.build();
+      final fileName = InspectionExportFilename.build();
 
       expect(fileName, startsWith('inspection_'));
       expect(fileName, endsWith('.xlsx'));

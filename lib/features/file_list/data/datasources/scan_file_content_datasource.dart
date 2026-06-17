@@ -4,10 +4,6 @@ import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry
 import 'package:share_plus/share_plus.dart';
 
 class ScanFileContentDatasource {
-  Future<String> readContent(ScanFileEntry entry) {
-    return MediaStoreStorage.readCsvContent(entry);
-  }
-
   Future<List<int>> readBytes(ScanFileEntry entry) {
     return MediaStoreStorage.readFileBytes(entry);
   }
@@ -41,7 +37,7 @@ class ScanFileContentDatasource {
   }
 
   Future<void> delete(ScanFileEntry entry) {
-    return MediaStoreStorage.deleteCsvFile(entry);
+    return MediaStoreStorage.deleteSavedFile(entry);
   }
 
   String _mimeTypeFor(String fileName) {

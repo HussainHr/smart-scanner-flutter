@@ -34,11 +34,6 @@ final fileListProvider =
   FileListNotifier.new,
 );
 
-final fileContentProvider = FutureProvider.autoDispose
-    .family<String, ScanFileEntry>((ref, entry) {
-  return ref.read(scanFileRepositoryProvider).readFileContent(entry);
-});
-
 final filePreviewRowsProvider = FutureProvider.autoDispose
     .family<List<List<String>>, ScanFileEntry>((ref, entry) async {
   final bytes = await ref.read(scanFileRepositoryProvider).readFileBytes(entry);

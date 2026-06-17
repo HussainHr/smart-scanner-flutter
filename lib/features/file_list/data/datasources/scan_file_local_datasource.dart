@@ -14,7 +14,7 @@ class ScanFileLocalDatasource {
       return _listFromDirectories(_directoriesOverride);
     }
 
-    return MediaStoreStorage.listCsvFiles();
+    return MediaStoreStorage.listSavedFiles();
   }
 
   Future<List<ScanFileEntry>> _listFromDirectories(
@@ -30,7 +30,10 @@ class ScanFileLocalDatasource {
       for (final file in directory
           .listSync()
           .whereType<File>()
-          .where((file) => file.path.toLowerCase().endsWith('.csv'))) {
+          .where((file) {
+            final path = file.path.toLowerCase();
+            return path.endsWith('.csv') || path.endsWith('.xlsx');
+          })) {
         final stat = await file.stat();
         entriesByPath[file.path] = ScanFileEntry(
           path: file.path,

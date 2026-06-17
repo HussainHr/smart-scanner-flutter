@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_scanner/features/scanner/data/widgets/barcode_camera_preview.dart';
+import 'package:smart_scanner/features/scanner/presentation/widgets/barcode_camera_preview.dart';
 import 'package:smart_scanner/features/scanner/presentation/providers/scanner_providers.dart';
 
 class CameraPreviewWidget extends ConsumerWidget {

@@ -3,9 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_scanner/core/constants/app_constants.dart';
 import 'package:smart_scanner/core/storage/media_store_storage.dart';
+import 'package:smart_scanner/core/utils/app_snackbar.dart';
+import 'package:smart_scanner/core/widgets/app_empty_state.dart';
 import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry.dart';
 import 'package:smart_scanner/features/file_list/presentation/providers/file_list_providers.dart';
+import 'package:smart_scanner/features/file_list/presentation/utils/delete_file_dialog.dart';
 import 'package:smart_scanner/features/file_list/presentation/widgets/scan_file_list_tile.dart';
+import 'package:smart_scanner/features/file_list/presentation/widgets/storage_path_banner.dart';
 
 class FileListScreen extends ConsumerStatefulWidget {
   const FileListScreen({super.key});
@@ -44,7 +48,6 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
     final fileListAsync = ref.watch(fileListProvider);
     final deletingFileName = ref.watch(fileDeleteProvider);
     final sendingFileName = ref.watch(fileSendProvider);
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -64,43 +67,11 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_storagePath != null)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                decoration: BoxDecoration(
-                  color: colorScheme.secondary.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                    color: colorScheme.secondary.withValues(alpha: 0.15),
-                  ),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.folder_outlined,
-                      size: 18,
-                      color: colorScheme.secondary,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        'Files are saved in $_storagePath',
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: colorScheme.onSurface.withValues(alpha: 0.7),
-                              height: 1.35,
-                            ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+          if (_storagePath != null) StoragePathBanner(storagePath: _storagePath!),
           Expanded(
             child: fileListAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
-              error: (error, _) => _FileListMessage(
+              error: (error, _) => AppEmptyState(
                 icon: Icons.error_outline_rounded,
                 title: 'Could not load saved files',
                 message: error.toString(),
@@ -109,11 +80,11 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
               ),
               data: (files) {
                 if (files.isEmpty) {
-                  return _FileListMessage(
+                  return AppEmptyState(
                     icon: Icons.folder_open_rounded,
                     title: 'No saved files yet',
                     message:
-                        'Export scans from the Scanner screen. CSV files will appear here and in ${AppConstants.publicScansPathLabel}.',
+                        'Export scans from the Scanner screen. Spreadsheet files will appear here and in ${AppConstants.publicScansPathLabel}.',
                   );
                 }
 
@@ -133,8 +104,8 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
                           AppConstants.routeFileView,
                           extra: entry,
                         ),
-                        onDelete: () => _confirmDelete(context, ref, entry),
-                        onSend: () => _sendFile(context, ref, entry),
+                        onDelete: () => _deleteFile(entry),
+                        onSend: () => _sendFile(entry),
                       );
                     },
                   ),
@@ -147,151 +118,42 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
     );
   }
 
-  Future<void> _confirmDelete(
-    BuildContext context,
-    WidgetRef ref,
-    ScanFileEntry entry,
-  ) async {
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Delete file?'),
-          content: Text('Delete ${entry.fileName} from saved files?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              style: FilledButton.styleFrom(
-                backgroundColor: const Color(0xFFDC2626),
-              ),
-              child: const Text('Delete'),
-            ),
-          ],
-        );
-      },
-    );
-
-    if (shouldDelete != true || !context.mounted) {
+  Future<void> _deleteFile(ScanFileEntry entry) async {
+    final shouldDelete = await showDeleteFileDialog(context, entry.fileName);
+    if (!shouldDelete || !mounted) {
       return;
     }
 
     try {
       await ref.read(fileDeleteProvider.notifier).delete(entry);
-
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('File deleted.')),
-        );
+      AppSnackbar.show(context, 'File deleted.');
     } catch (error) {
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('Failed to delete file: $error')),
-        );
+      AppSnackbar.show(context, 'Failed to delete file: $error');
     }
   }
 
-  Future<void> _sendFile(
-    BuildContext context,
-    WidgetRef ref,
-    ScanFileEntry entry,
-  ) async {
+  Future<void> _sendFile(ScanFileEntry entry) async {
     try {
       await ref.read(fileSendProvider.notifier).send(entry);
-
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          const SnackBar(content: Text('Gmail opened with attachment.')),
-        );
+      AppSnackbar.show(context, 'Gmail opened with attachment.');
     } catch (error) {
-      if (!context.mounted) {
+      if (!mounted) {
         return;
       }
 
-      ScaffoldMessenger.of(context)
-        ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text('Failed to send file: $error')),
-        );
+      AppSnackbar.show(context, 'Failed to send file: $error');
     }
-  }
-}
-
-class _FileListMessage extends StatelessWidget {
-  const _FileListMessage({
-    required this.icon,
-    required this.title,
-    required this.message,
-    this.actionLabel,
-    this.onAction,
-  });
-
-  final IconData icon;
-  final String title;
-  final String message;
-  final String? actionLabel;
-  final VoidCallback? onAction;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              size: 56,
-              color: colorScheme.secondary.withValues(alpha: 0.7),
-            ),
-            const SizedBox(height: 20),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
-                    height: 1.45,
-                  ),
-            ),
-            if (actionLabel != null && onAction != null) ...[
-              const SizedBox(height: 20),
-              FilledButton.tonal(
-                onPressed: onAction,
-                child: Text(actionLabel!),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
   }
 }

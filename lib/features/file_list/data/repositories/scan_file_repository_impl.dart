@@ -23,11 +23,6 @@ class ScanFileRepositoryImpl implements ScanFileRepository {
   }
 
   @override
-  Future<String> readFileContent(ScanFileEntry entry) {
-    return _contentDatasource.readContent(entry);
-  }
-
-  @override
   Future<void> shareFile(ScanFileEntry entry) {
     return _contentDatasource.share(entry);
   }

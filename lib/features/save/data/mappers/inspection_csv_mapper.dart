@@ -24,12 +24,3 @@ abstract final class InspectionCsvMapper {
     return const ListToCsvConverter().convert(rows);
   }
 }
-
-abstract final class InspectionFileNameBuilder {
-  static final DateFormat _timestampFormat = DateFormat('yyyyMMdd_HHmmss');
-
-  static String build() {
-    final timestamp = _timestampFormat.format(DateTime.now());
-    return 'inspection_$timestamp.xlsx';
-  }
-}
