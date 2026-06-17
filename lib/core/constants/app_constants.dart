@@ -6,6 +6,7 @@ class AppConstants {
   static const String routeHome = '/';
   static const String routeScanner = '/scanner';
   static const String routeFileList = '/file-list';
+  static const String routeFileView = '/file-list/view';
 
   static const String scansDirectoryName = 'Smart Scanner';
 

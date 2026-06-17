@@ -53,6 +53,16 @@ abstract final class SavedFileIndex {
     await _writeAll(entries);
   }
 
+  static Future<SavedFileIndexEntry?> findByFileName(String fileName) async {
+    for (final entry in await readAll()) {
+      if (entry.fileName == fileName) {
+        return entry;
+      }
+    }
+
+    return null;
+  }
+
   static Future<List<SavedFileIndexEntry>> readAll() async {
     final file = await _indexFile();
 

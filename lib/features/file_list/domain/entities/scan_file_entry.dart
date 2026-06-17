@@ -5,6 +5,7 @@ class ScanFileEntry {
     required this.modifiedAt,
     required this.sizeInBytes,
     required this.rowCount,
+    this.contentUri,
   });
 
   final String path;
@@ -12,4 +13,5 @@ class ScanFileEntry {
   final DateTime modifiedAt;
   final int sizeInBytes;
   final int rowCount;
+  final String? contentUri;
 }

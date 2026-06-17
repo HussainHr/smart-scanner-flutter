@@ -194,6 +194,7 @@ abstract final class MediaStoreStorage {
           modifiedAt: indexEntry.savedAt,
           sizeInBytes: indexEntry.sizeInBytes,
           rowCount: indexEntry.itemCount,
+          contentUri: indexEntry.contentUri,
         ),
       );
     }
@@ -258,5 +259,53 @@ abstract final class MediaStoreStorage {
     }
 
     return lines.length - 1;
+  }
+
+  static Future<String> readCsvContent(ScanFileEntry entry) async {
+    final contentUri = entry.contentUri ??
+        (await SavedFileIndex.findByFileName(entry.fileName))?.contentUri;
+
+    if (!kIsWeb && Platform.isAndroid && contentUri != null) {
+      final tempDirectory = await getTemporaryDirectory();
+      final tempFile = File('${tempDirectory.path}/${entry.fileName}');
+      final wasRead = await _mediaStore.readFileUsingUri(
+        uriString: contentUri,
+        tempFilePath: tempFile.path,
+      );
+
+      if (wasRead && tempFile.existsSync()) {
+        return tempFile.readAsString(encoding: utf8);
+      }
+    }
+
+    final file = File(entry.path);
+    if (file.existsSync()) {
+      return file.readAsString(encoding: utf8);
+    }
+
+    if (!kIsWeb && Platform.isAndroid && MediaStore.appFolder.isNotEmpty) {
+      final tempDirectory = await getTemporaryDirectory();
+      final tempFile = File('${tempDirectory.path}/${entry.fileName}');
+      final wasRead = await _mediaStore.readFile(
+        fileName: entry.fileName,
+        tempFilePath: tempFile.path,
+        dirType: DirType.download,
+        dirName: DirName.download,
+      );
+
+      if (wasRead && tempFile.existsSync()) {
+        return tempFile.readAsString(encoding: utf8);
+      }
+    }
+
+    throw const AppException('Could not read the selected file.');
+  }
+
+  static Future<File> prepareShareableFile(ScanFileEntry entry) async {
+    final content = await readCsvContent(entry);
+    final tempDirectory = await getTemporaryDirectory();
+    final shareFile = File('${tempDirectory.path}/share_${entry.fileName}');
+    await shareFile.writeAsString(content, encoding: utf8);
+    return shareFile;
   }
 }

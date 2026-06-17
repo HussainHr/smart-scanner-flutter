@@ -121,7 +121,14 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
                     itemCount: files.length,
                     separatorBuilder: (context, index) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {
-                      return ScanFileListTile(entry: files[index]);
+                      final entry = files[index];
+                      return ScanFileListTile(
+                        entry: entry,
+                        onTap: () => context.push(
+                          AppConstants.routeFileView,
+                          extra: entry,
+                        ),
+                      );
                     },
                   ),
                 );
