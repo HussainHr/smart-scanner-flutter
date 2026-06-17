@@ -39,6 +39,7 @@ class ScannerScreen extends ConsumerWidget {
       ),
       body: Column(
         children: [
+          SizedBox(height: 5,),
           Expanded(
             flex: 4,
             child: Padding(

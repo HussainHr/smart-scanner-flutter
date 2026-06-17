@@ -127,7 +127,7 @@ class InspectionListPanel extends ConsumerWidget {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 0, 20, 12),
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -143,9 +143,7 @@ class InspectionListPanel extends ConsumerWidget {
                           return;
                         }
 
-                        ref
-                            .read(inspectionListProvider.notifier)
-                            .updateCode(activeItem.id, code);
+                        ref.read(inspectionListProvider.notifier).updateCode(activeItem.id, code);
                         ref.read(lastScannedCodeProvider.notifier).setCode(code);
                       },
                     ),
@@ -161,9 +159,7 @@ class InspectionListPanel extends ConsumerWidget {
                       onChanged: (value) {
                         ref.read(scanQuantityProvider.notifier).setQuantity(value);
                         if (activeItem != null) {
-                          ref
-                              .read(inspectionListProvider.notifier)
-                              .updateQuantity(activeItem.id, value);
+                          ref.read(inspectionListProvider.notifier).updateQuantity(activeItem.id, value);
                         }
                       },
                     ),
@@ -304,21 +300,24 @@ class _ScanCodeInputState extends State<_ScanCodeInput> {
       );
     }
 
-    return TextField(
-      controller: _controller,
-      maxLines: 1,
-      textInputAction: TextInputAction.done,
-      decoration: const InputDecoration(
-        isDense: true,
-        border: InputBorder.none,
-        contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+    return Padding(
+      padding: const EdgeInsets.only(top: 4.0),
+      child: TextField(
+        controller: _controller,
+        maxLines: 1,
+        textInputAction: TextInputAction.done,
+        decoration: const InputDecoration(
+          isDense: true,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+        ),
+        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+        onChanged: widget.onChanged,
+        onSubmitted: (_) => FocusScope.of(context).unfocus(),
+        onEditingComplete: () => FocusScope.of(context).unfocus(),
       ),
-      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
-      onChanged: widget.onChanged,
-      onSubmitted: (_) => FocusScope.of(context).unfocus(),
-      onEditingComplete: () => FocusScope.of(context).unfocus(),
     );
   }
 }
