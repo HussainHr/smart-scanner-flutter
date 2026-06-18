@@ -2,10 +2,12 @@ import 'dart:io';
 
 import 'package:excel/excel.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:media_store_plus/media_store_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:smart_scanner/core/constants/app_constants.dart';
 import 'package:smart_scanner/core/errors/app_exception.dart';
+import 'package:smart_scanner/core/storage/media_store_bootstrap.dart';
 import 'package:smart_scanner/core/storage/saved_file_index.dart';
 import 'package:smart_scanner/core/storage/scans_directory.dart';
 import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry.dart';
@@ -108,44 +110,80 @@ abstract final class MediaStoreStorage {
     required Uint8List fileBytes,
     required int itemCount,
   }) async {
-    final tempDirectory = await getTemporaryDirectory();
-    final tempFile = File('${tempDirectory.path}/$fileName');
-    await tempFile.writeAsBytes(fileBytes, flush: true);
+    File? tempFile;
 
-    final saveInfo = await _mediaStore.saveFile(
-      tempFilePath: tempFile.path,
-      dirType: DirType.download,
-      dirName: DirName.download,
-    );
+    try {
+      await MediaStoreBootstrap.ensureReady();
 
-    if (saveInfo == null) {
-      throw const AppException(
-        'Failed to save file to Downloads. Please try again.',
+      final tempDirectory = await getTemporaryDirectory();
+      tempFile = File('${tempDirectory.path}/$fileName');
+      await tempFile.writeAsBytes(fileBytes, flush: true);
+
+      final saveInfo = await _mediaStore.saveFile(
+        tempFilePath: tempFile.path,
+        dirType: DirType.download,
+        dirName: DirName.download,
       );
+
+      if (saveInfo != null) {
+        final contentUri = saveInfo.uri.toString();
+        final displayPath = await _resolveDisplayPath(
+          contentUri: contentUri,
+          fileName: saveInfo.name,
+        );
+
+        await SavedFileIndex.add(
+          SavedFileIndexEntry(
+            fileName: saveInfo.name,
+            path: displayPath,
+            contentUri: contentUri,
+            savedAt: DateTime.now(),
+            itemCount: itemCount,
+            sizeInBytes: fileBytes.length,
+          ),
+        );
+
+        return MediaStoreSaveResult(
+          path: displayPath,
+          fileName: saveInfo.name,
+          contentUri: contentUri,
+        );
+      }
+    } on PlatformException catch (error, stackTrace) {
+      debugPrint('MediaStore save failed: ${error.message}');
+      debugPrint('$stackTrace');
+    } catch (error, stackTrace) {
+      debugPrint('MediaStore save failed: $error');
+      debugPrint('$stackTrace');
+    } finally {
+      if (tempFile != null && tempFile.existsSync()) {
+        await tempFile.delete();
+      }
     }
 
-    final contentUri = saveInfo.uri.toString();
-    final displayPath = await _mediaStore.getFilePathFromUri(
-          uriString: contentUri,
-        ) ??
-        '${AppConstants.publicScansPathLabel}/${saveInfo.name}';
-
-    await SavedFileIndex.add(
-      SavedFileIndexEntry(
-        fileName: saveInfo.name,
-        path: displayPath,
-        contentUri: contentUri,
-        savedAt: DateTime.now(),
-        itemCount: itemCount,
-        sizeInBytes: fileBytes.length,
-      ),
+    return _saveSpreadsheetToAppStorage(
+      fileName: fileName,
+      fileBytes: fileBytes,
+      itemCount: itemCount,
     );
+  }
 
-    return MediaStoreSaveResult(
-      path: displayPath,
-      fileName: saveInfo.name,
-      contentUri: contentUri,
-    );
+  static Future<String> _resolveDisplayPath({
+    required String contentUri,
+    required String fileName,
+  }) async {
+    final fallbackPath = '${AppConstants.publicScansPathLabel}/$fileName';
+
+    try {
+      return await _mediaStore.getFilePathFromUri(uriString: contentUri) ??
+          fallbackPath;
+    } on PlatformException catch (error) {
+      debugPrint('Could not resolve MediaStore path: ${error.message}');
+      return fallbackPath;
+    } catch (error) {
+      debugPrint('Could not resolve MediaStore path: $error');
+      return fallbackPath;
+    }
   }
 
   static Future<MediaStoreSaveResult> _saveSpreadsheetToAppStorage({

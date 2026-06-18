@@ -26,6 +26,21 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
     super.initState();
     _storagePath = MediaStoreStorage.displayPathLabel();
     _loadStoragePath();
+    _refreshFileList();
+  }
+
+  @override
+  void activate() {
+    super.activate();
+    _refreshFileList();
+  }
+
+  void _refreshFileList() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        ref.read(fileListProvider.notifier).refresh();
+      }
+    });
   }
 
   Future<void> _loadStoragePath() async {

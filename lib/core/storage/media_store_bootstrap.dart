@@ -6,6 +6,10 @@ import 'package:smart_scanner/core/constants/app_constants.dart';
 
 abstract final class MediaStoreBootstrap {
   static Future<void> initialize() async {
+    await ensureReady();
+  }
+
+  static Future<void> ensureReady() async {
     if (kIsWeb || !Platform.isAndroid) {
       return;
     }

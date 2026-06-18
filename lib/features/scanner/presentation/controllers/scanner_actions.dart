@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:smart_scanner/core/constants/app_constants.dart';
 import 'package:smart_scanner/core/errors/app_exception.dart';
 import 'package:smart_scanner/core/utils/app_snackbar.dart';
+import 'package:smart_scanner/features/file_list/presentation/providers/file_list_providers.dart';
 import 'package:smart_scanner/features/save/presentation/providers/save_providers.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
@@ -135,6 +136,7 @@ abstract final class ScannerActions {
       ref.read(inspectionListProvider.notifier).clear();
       ref.read(lastScannedCodeProvider.notifier).clear();
       ref.read(scanQuantityProvider.notifier).reset();
+      await ref.read(fileListProvider.notifier).refresh();
 
       if (!context.mounted) {
         return;
@@ -142,7 +144,7 @@ abstract final class ScannerActions {
 
       AppSnackbar.show(
         context,
-        'Saved ${savedFile.itemCount} items to ${AppConstants.publicScansPathLabel}/${savedFile.fileName}.',
+        'Saved ${savedFile.itemCount} items as ${savedFile.fileName}.',
       );
     } on AppException catch (error) {
       if (!context.mounted) {
@@ -150,6 +152,15 @@ abstract final class ScannerActions {
       }
 
       AppSnackbar.show(context, error.message);
+    } on PlatformException catch (error) {
+      if (!context.mounted) {
+        return;
+      }
+
+      AppSnackbar.show(
+        context,
+        error.message ?? 'Failed to save inspection list. Please try again.',
+      );
     } catch (_) {
       if (!context.mounted) {
         return;
