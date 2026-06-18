@@ -2,6 +2,16 @@
 
 Smart Scanner is a Flutter mobile app for warehouse and field inspections. Scan barcodes, QR codes, or text with OCR, build an inspection list with quantities, and export styled Excel spreadsheets to your device storage.
 
+## Screenshots
+
+| Home | Scanner |
+|:---:|:---:|
+| ![Home screen](assets/screenshots/home_page.jpeg) | ![Scanner screen with inspection list](assets/screenshots/scanner_screen.jpeg) |
+
+| Saved File List | File Preview |
+|:---:|:---:|
+| ![Saved file list](assets/screenshots/save_list.jpeg) | ![Inspection file preview](assets/screenshots/details.jpeg) |
+
 ## Features
 
 - **Barcode & QR scanning** — Live camera preview with a guided scan frame
@@ -35,7 +45,7 @@ Smart Scanner is a Flutter mobile app for warehouse and field inspections. Scan 
 1. Clone the repository:
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/HussainHr/smart-scanner-flutter.git
 cd smart-scanner-flutter
 ```
 
