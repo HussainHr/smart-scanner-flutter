@@ -101,18 +101,12 @@ abstract final class ScannerActions {
 
     final result = ref.read(inspectionListProvider.notifier).addScan(item);
 
-    if (result == AddScanResult.duplicate) {
-      AppSnackbar.show(
-        context,
-        'Duplicate scan: this code is already in the inspection list.',
-        isWarning: true,
-      );
-      return;
-    }
-
     ref.read(lastScannedCodeProvider.notifier).setCode(value);
     ref.read(scanQuantityProvider.notifier).reset();
-    AppSnackbar.show(context, 'Added to inspection list.');
+
+    if (result == AddScanResult.added) {
+      AppSnackbar.show(context, 'Added to inspection list.');
+    }
   }
 
   static Future<void> saveInspectionList(

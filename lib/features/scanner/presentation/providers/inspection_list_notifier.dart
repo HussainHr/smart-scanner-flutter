@@ -3,17 +3,33 @@ import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 
 enum AddScanResult {
   added,
-  duplicate,
+  quantityIncreased,
 }
 
 class InspectionListNotifier extends Notifier<List<ScanItem>> {
+  static const int _maxQuantity = 9999;
+
   @override
   List<ScanItem> build() => [];
 
   AddScanResult addScan(ScanItem item) {
-    final isDuplicate = state.any((existing) => existing.value == item.value);
-    if (isDuplicate) {
-      return AddScanResult.duplicate;
+    final existingIndex =
+        state.indexWhere((existing) => existing.value == item.value);
+
+    if (existingIndex != -1) {
+      final existing = state[existingIndex];
+      final updatedQuantity =
+          (existing.quantity + item.quantity).clamp(1, _maxQuantity);
+
+      state = [
+        for (var index = 0; index < state.length; index++)
+          if (index == existingIndex)
+            existing.copyWith(quantity: updatedQuantity)
+          else
+            state[index],
+      ];
+
+      return AddScanResult.quantityIncreased;
     }
 
     state = [...state, item];

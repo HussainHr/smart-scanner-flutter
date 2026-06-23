@@ -25,7 +25,7 @@ void main() {
       expect(container.read(inspectionListProvider), [item]);
     });
 
-    test('returns duplicate when value already exists', () {
+    test('increases quantity when the same value is scanned again', () {
       final container = ProviderContainer();
       addTearDown(container.dispose);
 
@@ -35,15 +35,21 @@ void main() {
         value: 'QR-DUPLICATE',
         type: ScanType.qr,
         scannedAt: DateTime(2026, 6, 16, 10, 30),
+        quantity: 2,
       );
 
       notifier.addScan(item);
       final result = notifier.addScan(
-        item.copyWith(id: '2', scannedAt: DateTime(2026, 6, 16, 10, 31)),
+        item.copyWith(
+          id: '2',
+          scannedAt: DateTime(2026, 6, 16, 10, 31),
+          quantity: 3,
+        ),
       );
 
-      expect(result, AddScanResult.duplicate);
+      expect(result, AddScanResult.quantityIncreased);
       expect(container.read(inspectionListProvider).length, 1);
+      expect(container.read(inspectionListProvider).first.quantity, 5);
     });
 
     test('removeScan deletes a single item', () {
