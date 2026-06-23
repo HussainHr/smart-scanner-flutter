@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_scanner/core/theme/app_theme.dart';
 import 'package:smart_scanner/core/widgets/quantity_text_field.dart';
 
 class InspectionDataTable extends StatelessWidget {
@@ -28,10 +29,10 @@ class InspectionDataTable extends StatelessWidget {
     }
 
     final headerColor = previewStyle
-        ? const Color(0xFF0E7490)
+        ? colorScheme.primary
         : colorScheme.primary.withValues(alpha: 0.12);
     final headerTextColor =
-        previewStyle ? Colors.white : colorScheme.primary;
+        previewStyle ? colorScheme.onPrimary : colorScheme.primary;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(14),
@@ -76,8 +77,8 @@ class InspectionDataTable extends StatelessWidget {
             TableRow(
               decoration: BoxDecoration(
                 color: previewStyle && index.isEven
-                    ? const Color(0xFFF1F5F9)
-                    : Colors.white,
+                    ? AppTheme.previewRowAlt
+                    : colorScheme.surface,
               ),
               children: [
                 if (showResetColumn)

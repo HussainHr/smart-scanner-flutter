@@ -28,11 +28,9 @@ class ScanFileListTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: colorScheme.outlineVariant.withValues(alpha: 0.6),
-        ),
+        border: Border.all(color: colorScheme.outlineVariant),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -42,13 +40,14 @@ class ScanFileListTile extends StatelessWidget {
               Icon(
                 Icons.fact_check_outlined,
                 size: 20,
-                color: colorScheme.secondary,
+                color: colorScheme.primary,
               ),
               const SizedBox(width: 8),
               Text(
                 'Inspection List',
                 style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w700,
+                      color: colorScheme.onSurface,
                     ),
               ),
             ],
@@ -57,7 +56,7 @@ class ScanFileListTile extends StatelessWidget {
           Text(
             AppDateFormatter.fileListTile.format(entry.modifiedAt),
             style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                  color: colorScheme.onSurface.withValues(alpha: 0.65),
                 ),
           ),
           const SizedBox(height: 4),
@@ -81,7 +80,7 @@ class ScanFileListTile extends StatelessWidget {
                 child: FilledButton(
                   onPressed: isDeleting ? null : onDelete,
                   style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFFDC2626),
+                    backgroundColor: Theme.of(context).colorScheme.error,
                     foregroundColor: Colors.white,
                   ),
                   child: isDeleting
@@ -101,12 +100,12 @@ class ScanFileListTile extends StatelessWidget {
                 child: FilledButton(
                   onPressed: isSending ? null : onSend,
                   child: isSending
-                      ? const SizedBox(
+                      ? SizedBox(
                           width: 18,
                           height: 18,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            color: Colors.white,
+                            color: colorScheme.onPrimary,
                           ),
                         )
                       : const Text('Send'),

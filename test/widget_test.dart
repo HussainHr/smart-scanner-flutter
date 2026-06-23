@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:smart_scanner/app.dart';
-import 'package:smart_scanner/core/constants/app_constants.dart';
 import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry.dart';
 import 'package:smart_scanner/features/file_list/presentation/providers/file_list_providers.dart';
 
@@ -19,7 +18,7 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text(AppConstants.appName), findsOneWidget);
+    expect(find.text('Main Menu'), findsOneWidget);
     expect(find.text('Scanner'), findsOneWidget);
     expect(find.text('Saved File List'), findsOneWidget);
   });

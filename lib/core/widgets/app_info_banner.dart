@@ -21,10 +21,10 @@ class AppInfoBanner extends StatelessWidget {
     return Container(
       padding: padding,
       decoration: BoxDecoration(
-        color: colorScheme.secondary.withValues(alpha: 0.08),
+        color: colorScheme.surface,
         borderRadius: BorderRadius.circular(borderRadius),
         border: Border.all(
-          color: colorScheme.secondary.withValues(alpha: 0.15),
+          color: colorScheme.primary.withValues(alpha: 0.35),
         ),
       ),
       child: Row(
@@ -32,7 +32,7 @@ class AppInfoBanner extends StatelessWidget {
           Icon(
             icon,
             size: 18,
-            color: colorScheme.secondary,
+            color: colorScheme.primary,
           ),
           const SizedBox(width: 10),
           Expanded(

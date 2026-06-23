@@ -20,10 +20,10 @@ class FileMetadataCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: colorScheme.secondary.withValues(alpha: 0.08),
+          color: colorScheme.surface,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: colorScheme.secondary.withValues(alpha: 0.15),
+            color: colorScheme.primary.withValues(alpha: 0.35),
           ),
         ),
         child: Column(
@@ -33,13 +33,14 @@ class FileMetadataCard extends StatelessWidget {
               '${entry.rowCount} items • ${FileDisplayFormatter.formatFileSize(entry.sizeInBytes)}',
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
                     fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
                   ),
             ),
             const SizedBox(height: 4),
             Text(
               AppDateFormatter.fileDetail.format(entry.modifiedAt),
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    color: colorScheme.onSurface.withValues(alpha: 0.65),
                   ),
             ),
           ],

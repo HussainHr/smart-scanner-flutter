@@ -1,66 +1,85 @@
 import 'package:flutter/material.dart';
 
 abstract final class AppTheme {
-  static const Color _primary = Color(0xFF0E7490);
-  static const Color _secondary = Color(0xFF4F46E5);
-  static const Color _surface = Color(0xFFF8FAFC);
-  static const Color _onSurface = Color(0xFF0F172A);
+  static const Color scaffoldDark = Color(0xFF12171E);
+  static const Color appBarDark = Color(0xFF0F1419);
+  static const Color surfaceDark = Color(0xFF1A1F26);
+  static const Color accentTeal = Color(0xFF66CDAA);
+  static const Color onAccent = Color(0xFF12171E);
+  static const Color onSurfaceDark = Color(0xFFE8EAED);
+  static const Color outlineDark = Color(0xFF2A313C);
+  static const Color errorRed = Color(0xFFDC2626);
+  static const Color previewRowAlt = Color(0xFF232A33);
 
-  static ThemeData get light {
-    final colorScheme = ColorScheme.fromSeed(
-      seedColor: _primary,
-      primary: _primary,
-      secondary: _secondary,
-      surface: _surface,
-      onSurface: _onSurface,
-      brightness: Brightness.light,
+  static ThemeData get dark {
+    final colorScheme = ColorScheme(
+      brightness: Brightness.dark,
+      primary: accentTeal,
+      onPrimary: onAccent,
+      secondary: accentTeal,
+      onSecondary: onAccent,
+      surface: surfaceDark,
+      onSurface: onSurfaceDark,
+      error: errorRed,
+      onError: Colors.white,
+      outline: outlineDark,
+      outlineVariant: outlineDark,
     );
 
     return ThemeData(
       useMaterial3: true,
+      brightness: Brightness.dark,
       colorScheme: colorScheme,
-      scaffoldBackgroundColor: _surface,
-      appBarTheme: AppBarTheme(
+      scaffoldBackgroundColor: scaffoldDark,
+      appBarTheme: const AppBarTheme(
         centerTitle: false,
         elevation: 0,
         scrolledUnderElevation: 0,
-        backgroundColor: _primary,
+        backgroundColor: appBarDark,
         foregroundColor: Colors.white,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actionsIconTheme: const IconThemeData(color: Colors.white),
-        titleTextStyle: const TextStyle(
+        iconTheme: IconThemeData(color: Colors.white),
+        actionsIconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(
           color: Colors.white,
           fontSize: 20,
-          fontWeight: FontWeight.w600,
+          fontWeight: FontWeight.w700,
           letterSpacing: -0.2,
         ),
       ),
       cardTheme: CardThemeData(
         elevation: 0,
-        color: Colors.white,
+        color: surfaceDark,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
-          side: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          side: const BorderSide(color: outlineDark),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
+          backgroundColor: accentTeal,
+          foregroundColor: onAccent,
           minimumSize: const Size.fromHeight(48),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           textStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
+            fontWeight: FontWeight.w700,
             fontSize: 15,
           ),
         ),
       ),
+      progressIndicatorTheme: const ProgressIndicatorThemeData(
+        color: accentTeal,
+      ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
+        backgroundColor: surfaceDark,
+        contentTextStyle: const TextStyle(color: onSurfaceDark),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
         ),
       ),
+      dividerColor: outlineDark,
     );
   }
 }

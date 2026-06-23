@@ -21,7 +21,6 @@ class FileDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final previewRowsAsync = ref.watch(filePreviewRowsProvider(entry));
     final isSharing = ref.watch(fileShareProvider);
-    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
       appBar: AppBar(
@@ -35,7 +34,7 @@ class FileDetailScreen extends ConsumerWidget {
             tooltip: 'Share file',
             onPressed: isSharing ? null : () => _shareFile(context, ref),
             icon: isSharing
-                ? AppLoadingIndicator(color: colorScheme.onPrimary)
+                ? AppLoadingIndicator(color: Colors.white)
                 : const Icon(Icons.share_rounded),
           ),
         ],
