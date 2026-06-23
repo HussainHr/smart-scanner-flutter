@@ -2,14 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:smart_scanner/core/constants/app_constants.dart';
-import 'package:smart_scanner/core/storage/media_store_storage.dart';
+import 'package:smart_scanner/core/theme/app_theme.dart';
 import 'package:smart_scanner/core/utils/app_snackbar.dart';
 import 'package:smart_scanner/core/widgets/app_empty_state.dart';
 import 'package:smart_scanner/features/file_list/domain/entities/scan_file_entry.dart';
 import 'package:smart_scanner/features/file_list/presentation/providers/file_list_providers.dart';
 import 'package:smart_scanner/features/file_list/presentation/utils/delete_file_dialog.dart';
 import 'package:smart_scanner/features/file_list/presentation/widgets/scan_file_list_tile.dart';
-import 'package:smart_scanner/features/file_list/presentation/widgets/storage_path_banner.dart';
 
 class FileListScreen extends ConsumerStatefulWidget {
   const FileListScreen({super.key});
@@ -19,13 +18,9 @@ class FileListScreen extends ConsumerStatefulWidget {
 }
 
 class _FileListScreenState extends ConsumerState<FileListScreen> {
-  String? _storagePath;
-
   @override
   void initState() {
     super.initState();
-    _storagePath = MediaStoreStorage.displayPathLabel();
-    _loadStoragePath();
     _refreshFileList();
   }
 
@@ -43,21 +38,6 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
     });
   }
 
-  Future<void> _loadStoragePath() async {
-    try {
-      final storagePath = await MediaStoreStorage.displayPath();
-      if (!mounted) {
-        return;
-      }
-
-      setState(() {
-        _storagePath = storagePath;
-      });
-    } catch (_) {
-      // Storage path is informational only.
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final fileListAsync = ref.watch(fileListProvider);
@@ -65,7 +45,11 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
     final sendingFileName = ref.watch(fileSendProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.fileListBackground,
       appBar: AppBar(
+        backgroundColor: AppTheme.fileListAppBar,
+        foregroundColor: Colors.white,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
@@ -82,7 +66,27 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          if (_storagePath != null) StoragePathBanner(storagePath: _storagePath!),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.checklist_rounded,
+                  size: 22,
+                  color: Colors.white.withValues(alpha: 0.9),
+                ),
+                const SizedBox(width: 10),
+                const Text(
+                  'Inspection List',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 18,
+                  ),
+                ),
+              ],
+            ),
+          ),
           Expanded(
             child: fileListAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
@@ -104,9 +108,10 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
                 }
 
                 return RefreshIndicator(
+                  color: AppTheme.fileListAppBar,
                   onRefresh: () => ref.read(fileListProvider.notifier).refresh(),
                   child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+                    padding: const EdgeInsets.fromLTRB(20, 0, 20, 24),
                     itemCount: files.length,
                     separatorBuilder: (context, index) => const SizedBox(height: 10),
                     itemBuilder: (context, index) {

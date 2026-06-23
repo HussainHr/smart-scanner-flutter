@@ -13,13 +13,13 @@ class HomeScreen extends StatelessWidget {
         title: const Text('Main Menu'),
       ),
       body: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+        padding: const EdgeInsets.fromLTRB(20, 80, 20, 24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             MenuCard(
               title: 'Scanner',
-              icon: Icons.document_scanner_outlined,
+              icon: Icons.qr_code_rounded,
               onTap: () => context.push(AppConstants.routeScanner),
             ),
             const SizedBox(height: 16),

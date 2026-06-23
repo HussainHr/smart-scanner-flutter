@@ -10,6 +10,11 @@ abstract final class AppTheme {
   static const Color outlineDark = Color(0xFF2A313C);
   static const Color errorRed = Color(0xFFDC2626);
   static const Color previewRowAlt = Color(0xFF232A33);
+  static const Color fileListBackground = Color(0xFF121212);
+  static const Color fileListAppBar = Color(0xFF005B6F);
+  static const Color fileListCard = Color(0xFF2C2C2E);
+  static const Color fileListDelete = Color(0xFFB00020);
+  static const Color fileListSubtitle = Color(0xFFB0B0B0);
 
   static ThemeData get dark {
     final colorScheme = ColorScheme(

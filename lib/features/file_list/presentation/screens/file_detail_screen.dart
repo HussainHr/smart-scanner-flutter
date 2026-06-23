@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:smart_scanner/core/theme/app_theme.dart';
 import 'package:smart_scanner/core/utils/app_snackbar.dart';
 import 'package:smart_scanner/core/widgets/app_empty_state.dart';
 import 'package:smart_scanner/core/widgets/app_loading_indicator.dart';
@@ -23,7 +24,11 @@ class FileDetailScreen extends ConsumerWidget {
     final isSharing = ref.watch(fileShareProvider);
 
     return Scaffold(
+      backgroundColor: AppTheme.fileListBackground,
       appBar: AppBar(
+        backgroundColor: AppTheme.fileListAppBar,
+        foregroundColor: Colors.white,
+        centerTitle: true,
         leading: IconButton(
           icon: const Icon(Icons.arrow_back_rounded),
           onPressed: () => context.pop(),
