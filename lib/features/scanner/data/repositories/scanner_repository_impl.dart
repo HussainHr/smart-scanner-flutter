@@ -18,6 +18,13 @@ class ScannerRepositoryImpl implements ScannerRepository {
   }
 
   @override
+  BarcodeDetection? consumePendingDetection() {
+    return _ref
+        .read(barcodeScannerDatasourceProvider)
+        .consumePendingDetection();
+  }
+
+  @override
   Future<String> recognizeTextFromFrame() async {
     final datasource = _ref.read(barcodeScannerDatasourceProvider);
     final imagePath = await ScanFrameCapture.captureCenterFrame(

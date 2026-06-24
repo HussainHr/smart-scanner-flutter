@@ -27,21 +27,11 @@ class InspectionEmptyState extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             const Text(
-              'No scans yet',
+              'There is no Data.',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
                 fontSize: 16,
-              ),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              'Scan a barcode or QR code to start building your inspection list.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.55),
-                height: 1.45,
-                fontSize: 14,
               ),
             ),
           ],

@@ -109,3 +109,20 @@ class LastScannedCodeNotifier extends Notifier<String?> {
 final lastScannedCodeProvider = NotifierProvider<LastScannedCodeNotifier, String?>(
   LastScannedCodeNotifier.new,
 );
+
+class PendingBarcodeNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+
+  void setValue(String? value) {
+    state = value;
+  }
+
+  void clear() {
+    state = null;
+  }
+}
+
+final pendingBarcodeProvider = NotifierProvider<PendingBarcodeNotifier, String?>(
+  PendingBarcodeNotifier.new,
+);

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:smart_scanner/core/theme/app_theme.dart';
-import 'package:smart_scanner/core/widgets/app_loading_indicator.dart';
 import 'package:smart_scanner/core/widgets/quantity_text_field.dart';
+import 'package:smart_scanner/features/scanner/presentation/widgets/scanner_action_button.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/presentation/providers/inspection_list_notifier.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/scan_code_input.dart';
@@ -92,34 +92,15 @@ class ScannerInputSection extends ConsumerWidget {
           ],
         ),
         const SizedBox(height: 10),
-        FilledButton(
+        ScannerActionButton(
+          label: 'Save',
           onPressed: isSaveEnabled && !isSaving ? onSave : null,
-          style: FilledButton.styleFrom(
-            backgroundColor: AppTheme.scannerMint,
-            foregroundColor: AppTheme.scannerMintOn,
-            disabledBackgroundColor: AppTheme.scannerMint.withValues(alpha: 0.35),
-            disabledForegroundColor: AppTheme.scannerMintOn.withValues(alpha: 0.5),
-            minimumSize: const Size.fromHeight(44),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-            textStyle: const TextStyle(
-              fontWeight: FontWeight.w700,
-              fontSize: 15,
-            ),
-          ),
-          child: isSaving
-              ? const AppLoadingIndicator(
-                  size: 20,
-                  color: AppTheme.scannerMintOn,
-                )
-              : const Text('Save'),
+          isLoading: isSaving,
         ),
       ],
     );
   }
 }
-
 class _InlineLabel extends StatelessWidget {
   const _InlineLabel({required this.text});
 

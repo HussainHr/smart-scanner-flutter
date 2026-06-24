@@ -26,8 +26,8 @@ abstract final class ScannerActions {
   }
 
   static void _scanBarcode(BuildContext context, WidgetRef ref) {
-    final detection =
-        ref.read(scannerRepositoryProvider).peekPendingDetection();
+    final repository = ref.read(scannerRepositoryProvider);
+    final detection = repository.peekPendingDetection();
 
     if (detection == null) {
       AppSnackbar.show(
@@ -36,6 +36,8 @@ abstract final class ScannerActions {
       );
       return;
     }
+
+    repository.consumePendingDetection();
 
     _addToInspectionList(
       context,
@@ -102,11 +104,15 @@ abstract final class ScannerActions {
     final result = ref.read(inspectionListProvider.notifier).addScan(item);
 
     ref.read(lastScannedCodeProvider.notifier).setCode(value);
+    ref.read(pendingBarcodeProvider.notifier).clear();
     ref.read(scanQuantityProvider.notifier).reset();
 
     if (result == AddScanResult.added) {
       AppSnackbar.show(context, 'Added to inspection list.');
+      return;
     }
+
+    AppSnackbar.show(context, 'Quantity updated for ${value.trim()}.');
   }
 
   static Future<void> saveInspectionList(
@@ -129,6 +135,7 @@ abstract final class ScannerActions {
 
       ref.read(inspectionListProvider.notifier).clear();
       ref.read(lastScannedCodeProvider.notifier).clear();
+      ref.read(pendingBarcodeProvider.notifier).clear();
       ref.read(scanQuantityProvider.notifier).reset();
       await ref.read(fileListProvider.notifier).refresh();
 

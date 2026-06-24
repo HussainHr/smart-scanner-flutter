@@ -4,7 +4,7 @@ abstract final class AppTheme {
   static const Color scaffoldDark = Color(0xFF12171E);
   static const Color appBarDark = Color(0xFF0F1419);
   static const Color surfaceDark = Color(0xFF1A1F26);
-  static const Color accentTeal = Color(0xFF66CDAA);
+  static const Color accentTeal = Color(0xFF67CDBF);
   static const Color onAccent = Color(0xFF12171E);
   static const Color onSurfaceDark = Color(0xFFE8EAED);
   static const Color outlineDark = Color(0xFF2A313C);
@@ -15,13 +15,11 @@ abstract final class AppTheme {
   static const Color fileListCard = Color(0xFF2C2C2E);
   static const Color fileListDelete = Color(0xFFB00020);
   static const Color fileListSubtitle = Color(0xFFB0B0B0);
-
-  /// Scanner screen palette (reference UI).
   static const Color scannerBackground = Color(0xFF121B22);
   static const Color scannerAppBar = Color(0xFF0F161C);
-  static const Color scannerMint = Color(0xFF66D2B3);
+  static const Color scannerMint = Color(0xFF67CDBF);
   static const Color scannerMintOn = Color(0xFF121B22);
-  static const Color scannerTeal = Color(0xFF004D40);
+  static const Color scannerTeal = Color(0xFF005047);
   static const Color scannerInputBg = Color(0xFF1A2330);
   static const Color scannerInputBorder = Color(0xFF3A4555);
 

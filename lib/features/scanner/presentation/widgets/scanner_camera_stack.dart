@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_scanner/features/scanner/domain/entities/scan_frame_layout.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
 import 'package:smart_scanner/features/scanner/presentation/providers/scanner_providers.dart';
 
@@ -25,8 +26,7 @@ class _ScannerCameraStackState extends ConsumerState<ScannerCameraStack> {
   bool _torchOn = false;
 
   Future<void> _toggleTorch() async {
-    final controller =
-        ref.read(barcodeScannerDatasourceProvider).controller;
+    final controller = ref.read(barcodeScannerDatasourceProvider).controller;
     await controller.toggleTorch();
     if (mounted) {
       setState(() => _torchOn = !_torchOn);
@@ -35,8 +35,9 @@ class _ScannerCameraStackState extends ConsumerState<ScannerCameraStack> {
 
   @override
   Widget build(BuildContext context) {
-    final isOcrMode = widget.scanMode == ScanMode.ocr;
+    final isBarcodeMode = widget.scanMode == ScanMode.barcodeQr;
     final isBusy = widget.isProcessing || widget.isSaving;
+    final frameSize = ScanFrameLayout.barcodeFrame;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -44,20 +45,20 @@ class _ScannerCameraStackState extends ConsumerState<ScannerCameraStack> {
         fit: StackFit.expand,
         children: [
           widget.cameraPreview,
-          if (isOcrMode)
-            Center(
-              child: Container(
-                width: 220,
-                height: 180,
-                decoration: BoxDecoration(
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.5),
-                    width: 1.5,
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-            ),
+          // if (isBarcodeMode)
+          //   Center(
+          //     child: Container(
+          //       width: frameSize.width,
+          //       height: frameSize.height,
+          //       decoration: BoxDecoration(
+          //         border: Border.all(
+          //           color: Colors.white.withValues(alpha: 0.85),
+          //           width: 2,
+          //         ),
+          //         borderRadius: BorderRadius.circular(12),
+          //       ),
+          //     ),
+          //   ),
           Positioned(
             top: 10,
             right: 10,

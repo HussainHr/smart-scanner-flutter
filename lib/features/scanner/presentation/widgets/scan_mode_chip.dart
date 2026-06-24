@@ -33,7 +33,7 @@ class ScanModeChip extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               border: Border.all(
                 color: isSelected
-                    ? AppTheme.scannerTeal
+                    ? AppTheme.scannerMint
                     : AppTheme.scannerInputBorder,
               ),
             ),

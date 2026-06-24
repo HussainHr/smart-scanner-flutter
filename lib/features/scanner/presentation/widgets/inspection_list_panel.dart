@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:smart_scanner/core/theme/app_theme.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_item.dart';
 import 'package:smart_scanner/features/scanner/presentation/providers/inspection_list_notifier.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/inspection_data_table.dart';
@@ -27,7 +28,7 @@ class InspectionListPanel extends ConsumerWidget {
               Icon(
                 Icons.grid_view_rounded,
                 size: 20,
-                color: Colors.white.withValues(alpha: 0.9),
+                color: AppTheme.fileListAppBar,
               ),
               const SizedBox(width: 8),
               const Text(
