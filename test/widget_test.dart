@@ -38,7 +38,7 @@ void main() {
     expect(find.text('Scanner'), findsWidgets);
     expect(find.text('Inspection List'), findsOneWidget);
     expect(find.text('Scan'), findsOneWidget);
-    expect(find.text('Save'), findsOneWidget);
+    expect(find.text('Save'), findsNothing);
     expect(find.text('BR/QR'), findsOneWidget);
   });
 

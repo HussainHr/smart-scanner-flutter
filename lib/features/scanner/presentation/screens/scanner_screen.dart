@@ -10,6 +10,7 @@ import 'package:smart_scanner/features/scanner/presentation/widgets/inspection_l
 import 'package:smart_scanner/features/scanner/presentation/widgets/scan_mode_selector.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/scanner_action_button.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/scanner_camera_stack.dart';
+import 'package:smart_scanner/features/scanner/presentation/widgets/scanner_stopped_banner.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/scanner_input_section.dart';
 import 'package:smart_scanner/features/scanner/presentation/widgets/scanner_scanned_result_field.dart';
 import 'package:smart_scanner/features/save/presentation/providers/save_providers.dart';
@@ -61,7 +62,11 @@ class ScannerScreen extends ConsumerWidget {
                       isSaving: isSaving,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 6),
+                  if (inspectionList.isEmpty) ...[
+                    const ScannerStoppedBanner(),
+                    const SizedBox(height: 10),
+                  ],
                   ScannerScannedResultField(code: displayCode),
                   const SizedBox(height: 10),
                   ScanModeSelector(isEnabled: !isBusy),
@@ -70,14 +75,17 @@ class ScannerScreen extends ConsumerWidget {
                     label: 'Scan',
                     onPressed: isBusy
                         ? null
-                        : () => ScannerActions.scan(context, ref, scanMode),
+                        : () =>
+                        ScannerActions.scan(context, ref, scanMode),
                     isLoading: isProcessing,
                   ),
                   const SizedBox(height: 10),
                   ScannerInputSection(
                     items: inspectionList,
-                    onSave: () =>
-                        ScannerActions.saveInspectionList(context, ref),
+                    onSave: () => ScannerActions.saveInspectionList(
+                      context,
+                      ref,
+                    ),
                     isSaveEnabled: canSave,
                     isSaving: isSaving,
                   ),
