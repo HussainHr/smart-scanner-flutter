@@ -55,13 +55,13 @@ class _FileListScreenState extends ConsumerState<FileListScreen> {
           onPressed: () => context.pop(),
         ),
         title: const Text('Saved File List'),
-        actions: [
-          IconButton(
-            tooltip: 'Refresh',
-            onPressed: () => ref.read(fileListProvider.notifier).refresh(),
-            icon: const Icon(Icons.refresh_rounded),
-          ),
-        ],
+        // actions: [
+        //   IconButton(
+        //     tooltip: 'Refresh',
+        //     onPressed: () => ref.read(fileListProvider.notifier).refresh(),
+        //     icon: const Icon(Icons.refresh_rounded),
+        //   ),
+        // ],
       ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
