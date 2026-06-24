@@ -39,7 +39,7 @@ void main() {
     expect(find.text('Inspection List'), findsOneWidget);
     expect(find.text('Scan'), findsOneWidget);
     expect(find.text('Save'), findsOneWidget);
-    expect(find.text('Barcode / QR'), findsOneWidget);
+    expect(find.text('BR/QR'), findsOneWidget);
   });
 
   testWidgets('Home navigates to saved file list screen', (tester) async {

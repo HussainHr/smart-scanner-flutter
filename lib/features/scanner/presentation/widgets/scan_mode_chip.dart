@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:smart_scanner/core/theme/app_theme.dart';
 import 'package:smart_scanner/features/scanner/domain/entities/scan_mode.dart';
 
 class ScanModeChip extends StatelessWidget {
@@ -17,49 +18,35 @@ class ScanModeChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: isEnabled ? onTap : null,
-        borderRadius: BorderRadius.circular(24),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected
-                ? Colors.white
-                : Colors.black.withValues(alpha: 0.35),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isSelected
-                  ? colorScheme.primary.withValues(alpha: 0.3)
-                  : Colors.white.withValues(alpha: 0.2),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              if (!isEnabled) ...[
-                Icon(
-                  Icons.lock_outline_rounded,
-                  size: 14,
-                  color: Colors.white.withValues(alpha: 0.7),
-                ),
-                const SizedBox(width: 6),
-              ],
-              Text(
-                mode.label,
-                style: TextStyle(
-                  color: isSelected
-                      ? colorScheme.primary
-                      : Colors.white.withValues(alpha: isEnabled ? 0.95 : 0.65),
-                  fontWeight: FontWeight.w600,
-                  fontSize: 13,
-                ),
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: isEnabled ? onTap : null,
+          borderRadius: BorderRadius.circular(10),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            alignment: Alignment.center,
+            padding: const EdgeInsets.symmetric(vertical: 10),
+            decoration: BoxDecoration(
+              color: isSelected ? AppTheme.scannerTeal : Colors.transparent,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(
+                color: isSelected
+                    ? AppTheme.scannerTeal
+                    : AppTheme.scannerInputBorder,
               ),
-            ],
+            ),
+            child: Text(
+              mode.label,
+              style: TextStyle(
+                color: isSelected
+                    ? Colors.white
+                    : Colors.white.withValues(alpha: isEnabled ? 0.85 : 0.45),
+                fontWeight: FontWeight.w600,
+                fontSize: 14,
+              ),
+            ),
           ),
         ),
       ),

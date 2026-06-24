@@ -26,12 +26,13 @@ class ScanModeSelector extends ConsumerWidget {
               .read(scanModeProvider.notifier)
               .setMode(ScanMode.barcodeQr),
         ),
-        const SizedBox(width: 8),
+        const SizedBox(width: 10),
         ScanModeChip(
           mode: ScanMode.ocr,
           isSelected: scanMode == ScanMode.ocr,
           isEnabled: isEnabled,
-          onTap: () => ref.read(scanModeProvider.notifier).setMode(ScanMode.ocr),
+          onTap: () =>
+              ref.read(scanModeProvider.notifier).setMode(ScanMode.ocr),
         ),
       ],
     );

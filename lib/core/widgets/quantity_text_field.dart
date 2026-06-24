@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:smart_scanner/core/theme/app_theme.dart';
 
 class QuantityTextField extends StatefulWidget {
   const QuantityTextField({
@@ -9,6 +10,7 @@ class QuantityTextField extends StatefulWidget {
     this.onFocus,
     this.showBorder = false,
     this.textAlign = TextAlign.center,
+    this.darkStyle = false,
   });
 
   final int quantity;
@@ -16,6 +18,7 @@ class QuantityTextField extends StatefulWidget {
   final VoidCallback? onFocus;
   final bool showBorder;
   final TextAlign textAlign;
+  final bool darkStyle;
 
   @override
   State<QuantityTextField> createState() => _QuantityTextFieldState();
@@ -70,6 +73,12 @@ class _QuantityTextFieldState extends State<QuantityTextField> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final textColor = widget.darkStyle ? Colors.white : null;
+    final borderColor = widget.darkStyle
+        ? AppTheme.scannerInputBorder
+        : colorScheme.outlineVariant;
+
     return TextField(
       controller: _controller,
       focusNode: _focusNode,
@@ -77,16 +86,39 @@ class _QuantityTextFieldState extends State<QuantityTextField> {
       keyboardType: TextInputType.number,
       textInputAction: TextInputAction.done,
       maxLines: 1,
+      style: textColor == null
+          ? null
+          : Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w600,
+              ),
       inputFormatters: [FilteringTextInputFormatter.digitsOnly],
       decoration: InputDecoration(
         isDense: true,
         contentPadding: EdgeInsets.symmetric(
-          horizontal: widget.showBorder ? 8 : 10,
+          horizontal: widget.showBorder ? 8 : 0,
           vertical: widget.showBorder ? 10 : 0,
         ),
         border: widget.showBorder
             ? OutlineInputBorder(
                 borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: borderColor),
+              )
+            : InputBorder.none,
+        enabledBorder: widget.showBorder
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(color: borderColor),
+              )
+            : InputBorder.none,
+        focusedBorder: widget.showBorder
+            ? OutlineInputBorder(
+                borderRadius: BorderRadius.circular(10),
+                borderSide: BorderSide(
+                  color: widget.darkStyle
+                      ? AppTheme.scannerMint
+                      : colorScheme.primary,
+                ),
               )
             : InputBorder.none,
       ),

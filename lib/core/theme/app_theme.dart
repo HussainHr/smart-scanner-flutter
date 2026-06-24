@@ -16,6 +16,15 @@ abstract final class AppTheme {
   static const Color fileListDelete = Color(0xFFB00020);
   static const Color fileListSubtitle = Color(0xFFB0B0B0);
 
+  /// Scanner screen palette (reference UI).
+  static const Color scannerBackground = Color(0xFF121B22);
+  static const Color scannerAppBar = Color(0xFF0F161C);
+  static const Color scannerMint = Color(0xFF66D2B3);
+  static const Color scannerMintOn = Color(0xFF121B22);
+  static const Color scannerTeal = Color(0xFF004D40);
+  static const Color scannerInputBg = Color(0xFF1A2330);
+  static const Color scannerInputBorder = Color(0xFF3A4555);
+
   static ThemeData get dark {
     final colorScheme = ColorScheme(
       brightness: Brightness.dark,
